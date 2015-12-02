@@ -201,6 +201,7 @@ nova boot citest --flavor m1.medium --image rhel-7.2-20151102 --key-name yourkey
 
 ### Trove Images via virt-customize
 This approach was inspired by https://rwmj.wordpress.com/2015/10/03/tip-updating-rhel-7-1-cloud-images-using-virt-customize-and-subscription-manager/.
+
 NOTE: You MUST use >= Fedora 22 OR RHEL 7.3 for this!  I've used F22.
 
 ALSO NOTE: I've not completely tested this, but feel free to use as a starting point... 
@@ -239,43 +240,58 @@ glance image-create --name "rhel7.2-mysql-5.5" --disk-format raw --container-for
 
 ## Basic Trove Workflow
 
-. Create a datastore with a default version (mysql-5.5)
+* Create a datastore with a default version (mysql-5.5)
+```
 trove datastore-list
 trove-manage datastore_update mysql ""
+```
 
-. Add a version to the datastore
+* Add a version to the datastore
+```
 glance image-list
 # trove-manage datastore_version_update <datastore> <version name> <datastore_manager> <glance ID> <packages> <active>
 trove-manage datastore_version_update mysql mysql-5.5 mysql a463edc3-5f46-40c9-b91c-bf18f7f521d8 "" 1
+```
 
-. Make this version the default for mysql
+* Make this version the default for mysql
+```
 trove-manage datastore_update mysql mysql-5.5
+```
 
-. Setup Validation rules
+* Setup Validation rules
 mysql and percona have a set of validation rules which ensures configuration mat
 ches the rules.  Load these for later... 
+```
 trove-manage db_load_datastore_config_parameters mysql mysql-5.5 /usr/lib/python2.7/site-packages/trove/templates/mysql/validation-rules.json
+```
 
-. Validate your datastore exists 
+* Validate your datastore exists 
+```
 trove datastore-list
 trove datastore-version-list mysql
+```
 
-. Create an instance
+* Create an instance
+```
 trove create jjtest 3 --size 5 --datastore mysql --datastore_version mysql-5.5 --nic net-id=$PRIVNET1ID
+```
   m1.medium wouldn't work.  Must specify flavor id
   size wouldn't allow more than 5GB.  Why?  
 
-. Enabling ssh and ping access to your instance
+* Enabling ssh and ping access to your instance
 This is kind of stupid.  I've not found a way from trove to set defaults for security groups.  Maybe use a jump server to access?  Or maybe just this: 
+```
 trove list
 # with your instance ID from trove-list:
 neutron security-group-list | grep <instance ID> 
 neutron security-group-rule-create --protocol tcp --port-range-min 22 --port-range-max 22 --direction ingress <security group ID>
 neutron security-group-rule-create --protocol icmp --direction ingress <security group ID>
-
+```
 
 . Enable root access to your database
+```
 trove list 
 trove root-show <instance ID> 
 trove root-enable <instance ID>
+```
 
