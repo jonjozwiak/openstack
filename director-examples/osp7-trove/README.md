@@ -288,7 +288,7 @@ neutron security-group-rule-create --protocol tcp --port-range-min 22 --port-ran
 neutron security-group-rule-create --protocol icmp --direction ingress <security group ID>
 ```
 
-. Enable root access to your database
+* Enable root access to your database
 ```
 trove list 
 trove root-show <instance ID> 
