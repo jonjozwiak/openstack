@@ -1,8 +1,9 @@
 == Description
 
-This document will describe how to update OpenStack Platform director (OSPd) and OpenStack Puppet Modules (OPM) to support deploying RadosGW (RGW) functionality on OSP7 controller. OPSd on deployment server needs to be updated support deploying RGW functionality. OPM on the contollers needs to be update to support configuring RGW support 
+This procedure was created by Keith Schincke at Red Hat and describes how to update OpenStack Platform director (OSPd) and OpenStack Puppet Modules (OPM) to support deploying RadosGW (RGW) functionality on OSP7 controller. OPSd on deployment server needs to be updated support deploying RGW functionality. OPM on the contollers needs to be update to support configuring RGW support 
 
-IMPORTANT: These patches are going through upstream validation and integration. They are certain to change from what is documented below. 
+IMPORTANT: These patches are going through upstream validation and integration. They are certain to change from what is documented below. (https://review.openstack.org/#/c/254548/)
+
 
 == OpenStack Platform Director Updates
 
@@ -43,7 +44,9 @@ The overcloud_controller_paceker.pp file requires patching before the "openstack
 The following example command line can be used to patch the overcloud_controller_pacemaker.pp file
 
 ----
-$ patch /home/stack/templates/openstack-tripleo-heat-templates/puppet/manifests/overcloud_controller_pacemaker.pp /pub/projects/rhos/kilo/scripts/kschinck/overcloud_controller_pacemaker.pp.patch
+wget -O /tmp/overcloud_controller_pacemaker.pp.patch https://raw.githubusercontent.com/jonjozwiak/openstack/master/director-examples/rgw/overcloud_controller_pacemaker.pp.patch
+
+patch /home/stack/templates/openstack-tripleo-heat-templates/puppet/manifests/overcloud_controller_pacemaker.pp /tmp/overcloud_controller_pacemaker.pp.patch
 ----
 
 === ceph.yaml
@@ -67,7 +70,9 @@ The ceph.yaml file requires patching to add the needed puppet variables.
 The following example command line can be used to patch the ceph.yaml file
 
 ----
-$ patch /home/stack/templates/openstack-tripleo-heat-templates/puppet/hieradata/ceph.yaml /pub/projects/rhos/kilo/scripts/kschinck/ceph.yaml.patch
+wget -O /tmp/ceph.yaml.patch https://raw.githubusercontent.com/jonjozwiak/openstack/master/director-examples/rgw/ceph.yaml.patch
+
+patch /home/stack/templates/openstack-tripleo-heat-templates/puppet/hieradata/ceph.yaml /tmp/ceph.yaml.patch
 ----
 
 
@@ -212,11 +217,11 @@ resources:
         #!/bin/bash
         {
         yum -y install wget
-        wget -O /tmp/rgw.pp.patch http://refarch/pub/projects/rhos/kilo/scripts/kschinck/rgw.pp.patch
+        wget -O /tmp/rgw.pp.patch https://raw.githubusercontent.com/jonjozwiak/openstack/master/director-examples/rgw/rgw.pp.patch
         patch /usr/share/openstack-puppet/modules/ceph/manifests/rgw.pp /tmp/rgw.pp.patch
-        wget -O /tmp/profile-rgw.pp.patch http://refarch/pub/projects/rhos/kilo/scripts/kschinck/profile/rgw.pp.patch
+        wget -O /tmp/profile-rgw.pp.patch https://raw.githubusercontent.com/jonjozwiak/openstack/master/director-examples/rgw/profile-rgw.pp.patch
         patch /usr/share/openstack-puppet/modules/ceph/manifests/profile/rgw.pp /tmp/profile-rgw.pp.patch
-        wget -O /tmp/profile-params.pp.patch http://refarch/pub/projects/rhos/kilo/scripts/kschinck/profile/params.pp.patch
+        wget -O /tmp/profile-params.pp.patch https://raw.githubusercontent.com/jonjozwiak/openstack/master/director-examples/rgw/profile-params.pp.patch
         patch /usr/share/openstack-puppet/modules/ceph/manifests/profile/params.pp /tmp/profile-params.pp.patch
 
         } | tee /root/install_patch.txt
