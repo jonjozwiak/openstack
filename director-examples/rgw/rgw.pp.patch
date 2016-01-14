@@ -1,17 +1,48 @@
---- /dev/null	2015-12-21 11:06:33.720000000 -0500
-+++ rgw.pp	2015-11-30 15:52:51.000000000 -0500
-@@ -0,0 +1,14 @@
-+class ceph::profile::rgw {
-+  require ::ceph::profile::base
-+
-+  if $ceph::profile::params::enable_rgw
+--- rgw.pp.ORIG	2015-12-21 15:58:49.427463955 -0500
++++ rgw.pp	2015-12-01 07:17:15.000000000 -0500
+@@ -54,6 +54,12 @@
+ # [*syslog*] Whether or not to log to syslog.
+ #   Optional. Default is true.
+ #
++# [*frontend_type*] What type of frontend to use
++#   Optional. Default is civetweb. Other option is apache
++#
++# [*rgw_frontends*] Arguments to the rgw frontend
++#   Optional. Default is "civetweb port=7480"
++#
+ define ceph::rgw (
+   $pkg_radosgw = $::ceph::params::pkg_radosgw,
+   $rgw_data = "/var/lib/ceph/radosgw/ceph-${name}",
+@@ -65,19 +71,28 @@
+   $rgw_print_continue = true,
+   $rgw_port = $::ceph::params::rgw_port,
+   $syslog = true,
++  $frontend_type = 'civetweb' ,
++  $rgw_frontends =  'civetweb port=7480' ,
+ ) {
+ 
+   ceph_config {
+     "client.${name}/host":               value => $::hostname;
+     "client.${name}/keyring":            value => $keyring_path;
+     "client.${name}/log_file":           value => $log_file;
+-    "client.${name}/rgw_dns_name":       value => $rgw_dns_name;
+-    "client.${name}/rgw_port":           value => $rgw_port;
+-    "client.${name}/rgw_print_continue": value => $rgw_print_continue;
+-    "client.${name}/rgw_socket_path":    value => $rgw_socket_path;
++    "client.${name}/rgw_frontends":      value => $rgw_frontends;
+     "client.${name}/user":               value => $user;
+   }
+ 
++  if ($frontend_type == 'apache') 
 +  {
-+    ceph::rgw { "radosgw.gateway":
-+      user => $ceph::profile::params::rgw_user,
-+      rgw_frontends => $ceph::profile::params::rgw_frontends ,
-+      frontend_type => $ceph::profile::params::frontend_type ,
++    ceph_config {
++      "client.${name}/rgw_dns_name":       value => $rgw_dns_name;
++      "client.${name}/rgw_port":           value => $rgw_port;
++      "client.${name}/rgw_print_continue": value => $rgw_print_continue;
++      "client.${name}/rgw_socket_path":    value => $rgw_socket_path;
 +    }
-+   
 +  }
 +
-+}
+   package { $pkg_radosgw:
+     ensure => installed,
+     tag    => 'ceph',
