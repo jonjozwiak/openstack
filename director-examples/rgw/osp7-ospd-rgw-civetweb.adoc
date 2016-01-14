@@ -1,0 +1,245 @@
+== Description
+
+This document will describe how to update OpenStack Platform director (OSPd) and OpenStack Puppet Modules (OPM) to support deploying RadosGW (RGW) functionality on OSP7 controller. OPSd on deployment server needs to be updated support deploying RGW functionality. OPM on the contollers needs to be update to support configuring RGW support 
+
+IMPORTANT: These patches are going through upstream validation and integration. They are certain to change from what is documented below. 
+
+== OpenStack Platform Director Updates
+
+=== overcloud_controller_pacemaker.pp
+
+The overcloud_controller_paceker.pp file requires patching before the "openstack deploy" command is executed. This patch will configure the RGW feature on the controller and create the needed client keyring. 
+
+----
+--- overcloud_controller_pacemaker.pp.ORIG	2015-12-21 14:10:59.212976385 -0500
++++ overcloud_controller_pacemaker.pp	2015-12-21 14:11:19.056766615 -0500
+@@ -489,6 +489,7 @@
+       mon_initial_members => downcase(hiera('ceph_mon_initial_members'))
+     }
+     include ::ceph::profile::mon
++    include ::ceph::profile::rgw
+   }
+ 
+   if str2bool(hiera('enable_ceph_storage', 'false')) {
+@@ -1610,6 +1611,15 @@R
+ 
+   }
+ 
++
++  if $ceph::profile::params::enable_rgw
++  {
++    exec { 'create_radosgw_keyring':
++      command => "/usr/bin/ceph auth get-or-create client.radosgw.gateway mon 'allow rwx' osd 'allow rwx' -o /etc/ceph/ceph.client.radosgw.gateway.keyring" ,
++      creates => "/etc/ceph/ceph.client.radosgw.gateway.keyring" ,
++    }
++  }
++
+ } #END STEP 4
+ 
+ # SERVICES INIT
+
+----
+
+The following example command line can be used to patch the overcloud_controller_pacemaker.pp file
+
+----
+$ patch /home/stack/templates/openstack-tripleo-heat-templates/puppet/manifests/overcloud_controller_pacemaker.pp /pub/projects/rhos/kilo/scripts/kschinck/overcloud_controller_pacemaker.pp.patch
+----
+
+=== ceph.yaml
+
+The ceph.yaml file requires patching to add the needed puppet variables.
+
+----
+--- ceph.yaml.ORIG	2015-12-21 14:13:15.177687341 -0500
++++ ceph.yaml	2015-12-21 14:14:06.878535416 -0500
+@@ -13,3 +13,8 @@
+   - "%{hiera('glance::backend::rbd::rbd_store_pool')}"
+ 
+ ceph_osd_selinux_permissive: true
++
++ceph::profile::params::enable_rgw: true
++ceph::profile::params::rgw_frontends: "civetweb port=7480"
++
++
+----
+
+The following example command line can be used to patch the ceph.yaml file
+
+----
+$ patch /home/stack/templates/openstack-tripleo-heat-templates/puppet/hieradata/ceph.yaml /pub/projects/rhos/kilo/scripts/kschinck/ceph.yaml.patch
+----
+
+
+
+== OpenStack Puppet Modules
+
+Three puppet files on the controllers need to be patched before the overcloud configuration is applied. 
+
+=== manifests/rgw.pp
+
+The manifests/rgw.pp file needs to be patched to support optionally configuring RGW to use civetweb. 
+
+----
+--- rgw.pp.ORIG	2015-12-21 15:58:49.427463955 -0500
++++ rgw.pp	2015-12-01 07:17:15.000000000 -0500
+@@ -54,6 +54,12 @@
+ # [*syslog*] Whether or not to log to syslog.
+ #   Optional. Default is true.
+ #
++# [*frontend_type*] What type of frontend to use
++#   Optional. Default is civetweb. Other option is apache
++#
++# [*rgw_frontends*] Arguments to the rgw frontend
++#   Optional. Default is "civetweb port=7480"
++#
+ define ceph::rgw (
+   $pkg_radosgw = $::ceph::params::pkg_radosgw,
+   $rgw_data = "/var/lib/ceph/radosgw/ceph-${name}",
+@@ -65,19 +71,28 @@
+   $rgw_print_continue = true,
+   $rgw_port = $::ceph::params::rgw_port,
+   $syslog = true,
++  $frontend_type = 'civetweb' ,
++  $rgw_frontends =  'civetweb port=7480' ,
+ ) {
+ 
+   ceph_config {
+     "client.${name}/host":               value => $::hostname;
+     "client.${name}/keyring":            value => $keyring_path;
+     "client.${name}/log_file":           value => $log_file;
+-    "client.${name}/rgw_dns_name":       value => $rgw_dns_name;
+-    "client.${name}/rgw_port":           value => $rgw_port;
+-    "client.${name}/rgw_print_continue": value => $rgw_print_continue;
+-    "client.${name}/rgw_socket_path":    value => $rgw_socket_path;
++    "client.${name}/rgw_frontends":      value => $rgw_frontends;
+     "client.${name}/user":               value => $user;
+   }
+ 
++  if ($frontend_type == 'apache') 
++  {
++    ceph_config {
++      "client.${name}/rgw_dns_name":       value => $rgw_dns_name;
++      "client.${name}/rgw_port":           value => $rgw_port;
++      "client.${name}/rgw_print_continue": value => $rgw_print_continue;
++      "client.${name}/rgw_socket_path":    value => $rgw_socket_path;
++    }
++  }
++
+   package { $pkg_radosgw:
+     ensure => installed,
+     tag    => 'ceph',
+----
+
+=== manifests/profile/rgw.pp
+
+The manifests/profile/rgw.pp file is patched to provide heira support. 
+
+----
+--- /dev/null	2015-12-21 11:06:33.720000000 -0500
++++ rgw.pp	2015-11-30 15:52:51.000000000 -0500
+@@ -0,0 +1,14 @@
++class ceph::profile::rgw {
++  require ::ceph::profile::base
++
++  if $ceph::profile::params::enable_rgw
++  {
++    ceph::rgw { "radosgw.gateway":
++      user => $ceph::profile::params::rgw_user,
++      rgw_frontends => $ceph::profile::params::rgw_frontends ,
++      frontend_type => $ceph::profile::params::frontend_type ,
++    }
++   
++  }
++
++}
+----
+
+=== manifests/profile/params.pp
+
+The manifests/profile/params.pp file is patched to add new configuration parameters. 
+
+----
+--- params.pp.ORIG	2015-12-21 16:28:59.570066642 -0500
++++ params.pp	2015-11-30 15:54:55.000000000 -0500
+@@ -106,6 +106,11 @@
+   $client_keys = {},
+   $osds = undef,
+   $manage_repo = true,
++  $enable_rgw = true ,
++  $rgw_user = 'root' ,
++  $rgw_print_continue = 'false' ,
++  $frontend_type = 'civetweb' ,
++  $rgw_frontends = 'civetweb port=7480' ,
+ ) {
+   validate_hash($client_keys)
+----
+
+== Updating Openstack Puppet Modules During Openstack Deployment
+
+OPM requires patching after the initial OS deployment but before the application of the overcloud configuration. This is achieved by adding a first-boot heat template which is executed on each host. 
+
+Below is an example command line option to add to the openstack deploy command. 
+
+----
+        -e /home/stack/templates/my_templates/first_boot_env.yaml 
+----
+
+Below are the contents of the first_boot_env.yaml heat environment file
+
+----
+resource_registry:
+    OS::TripleO::NodeUserData: firstboot/first_boot_template.yaml
+----
+
+Below are the contents of the first_boot_template.yaml heat template file. The hosts need to be abel to install packages. 
+
+----
+heat_template_version: 2014-10-16
+
+resources:
+  userdata:
+    type: OS::Heat::MultipartMime
+    properties:
+      parts:
+      - config: {get_resource: install_ceph_radosgw}
+      - config: {get_resource: install_patch}
+
+  install_patch:
+    type: OS::Heat::SoftwareConfig
+    properties:
+      config: |
+        #!/bin/bash
+        {
+        yum -y install wget
+        wget -O /tmp/rgw.pp.patch http://refarch/pub/projects/rhos/kilo/scripts/kschinck/rgw.pp.patch
+        patch /usr/share/openstack-puppet/modules/ceph/manifests/rgw.pp /tmp/rgw.pp.patch
+        wget -O /tmp/profile-rgw.pp.patch http://refarch/pub/projects/rhos/kilo/scripts/kschinck/profile/rgw.pp.patch
+        patch /usr/share/openstack-puppet/modules/ceph/manifests/profile/rgw.pp /tmp/profile-rgw.pp.patch
+        wget -O /tmp/profile-params.pp.patch http://refarch/pub/projects/rhos/kilo/scripts/kschinck/profile/params.pp.patch
+        patch /usr/share/openstack-puppet/modules/ceph/manifests/profile/params.pp /tmp/profile-params.pp.patch
+
+        } | tee /root/install_patch.txt
+
+  install_ceph_radosgw:
+    type: OS::Heat::SoftwareConfig
+    properties:
+      config: |
+        #!/bin/bash
+        {
+          if [[ $HOSTNAME =~ "controller" ]]
+          then
+            #echo "No install this time"
+            yum -y install ceph-radosgw-0.94.1-13.el7cp
+          fi
+        } | tee /root/install_ceph_radosgw.txt
+
+outputs:
+  OS::stack_id:
+    value: {get_resource: userdata}
+
+----
+
+
+
+
