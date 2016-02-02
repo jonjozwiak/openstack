@@ -1,9 +1,9 @@
 # Nova Serial Proxy for OSP7 Director
 This collection of templates shows how to setup nova-serialproxy and Serial Consoles on RHEL OSP 7 with Director.  Reference details as follows: 
 
-. https://blueprints.launchpad.net/horizon/+spec/serial-console
-. https://bugzilla.redhat.com/show_bug.cgi?id=974199
-. http://blog.oddbit.com/2014/12/22/accessing-the-serial-console-of-your-nova-servers/
+* https://blueprints.launchpad.net/horizon/+spec/serial-console
+* https://bugzilla.redhat.com/show_bug.cgi?id=974199
+* http://blog.oddbit.com/2014/12/22/accessing-the-serial-console-of-your-nova-servers/
 
 
 ## Pre-requisites
