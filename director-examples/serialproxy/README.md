@@ -8,11 +8,11 @@ This collection of templates shows how to setup nova-serialproxy and Serial Cons
 
 ## Pre-requisites
 
-. A running/installed OSP Director host with heat templates copied to a working directory 
+* A running/installed OSP Director host with heat templates copied to a working directory 
 ``` 
 cp -rp /usr/share/openstack-tripleo-heat-templates /home/stack/templates
 ```
-. A copy of the overcloud images in /home/stack/images 
+* A copy of the overcloud images in /home/stack/images 
 ```
 # Files are accessible from:
 # https://access.redhat.com/downloads/content/191/ver=7/rhel---7/7/x86_64/product-software
@@ -20,7 +20,7 @@ cp -rp /usr/share/openstack-tripleo-heat-templates /home/stack/templates
 cd /home/stack/images
 for tarfile in *.tar; do tar -xf $tarfile; done
 ```
-. A Local RHEL OSP 7 repo
+* A Local RHEL OSP 7 repo
 Assuming you have your Director host registered to RHN, you can reposync it as follows
 ``` 
 # As Root - note this takes about 233mb
@@ -33,7 +33,7 @@ createrepo /var/www/html/repos/rhel-7-server-openstack-7.0-rpms
 ## Image Updates
 The default overcloud images do not ship with the openstack-nova-serialproxy package.  I will show updating the image prior to upload.  However, you could also register the system with RHN or use local repos when provisioning the overcloud and install as a pre-step.  
 
-This step assumes you have a copy of the openstack-nova-serialproxy rpm in your /home/stack/images directory
+This step assumes you have created a local repo as described above
 
 ```
 # As stack user
@@ -69,15 +69,15 @@ openstack overcloud image upload --image-path /home/stack/images --update-existi
 
 ## Deploy your overcloud with serial console enabled
 
-. Deploy your overcloud and validate standard functionality
-. Create a subdirectory in your local templates directory `mkdir /home/stack/templates/custom`
-. Place all files in this repo in /home/stack/templates/custom
+1. Deploy your overcloud and validate standard functionality
+2. Create a subdirectory in your local templates directory `mkdir /home/stack/templates/custom`
+3. Place all files in this repo in /home/stack/templates/custom
 ```
 cd /home/stack
 git clone https://github.com/jonjozwiak/openstack.git
 cp openstack/director-examples/serialproxy/* /home/stack/templates/custom
 ```
-. Execure the overcloud deploy with the new templates added:
+4. Execure the overcloud deploy with the new templates added:
 ``` 
 -e /home/stack/templates/custom/nova-serialproxy-post-deploy.yaml
 ```
@@ -89,7 +89,8 @@ The Nova serial console requires websockets and is not available just by telnet 
 # Boot instance and verify you can connect
 neutron net-list
 PRIVNET1ID=fb777762-4047-4f32-a1de-4367cfc546aa
-nova boot testserver --flavor m1.tiny --image cirros-0.3.4-x86_64 --key-name adminkey --security-groups default --nic net-id=$PRIVNET1ID
+nova boot testserver --flavor m1.tiny --image cirros-0.3.4-x86_64 --key-name adminkey \
+  --security-groups default --nic net-id=$PRIVNET1ID
 FLOATINGIP=$(neutron floatingip-create pubnet1 | grep floating_ip_address | awk '{print $4}')
 nova add-floating-ip testserver $FLOATINGIP
 ping -c 1 $FLOATINGIP
