@@ -69,15 +69,15 @@ openstack overcloud image upload --image-path /home/stack/images --update-existi
 
 ## Deploy your overcloud with serial console enabled
 
-1. Deploy your overcloud and validate standard functionality
-2. Create a subdirectory in your local templates directory `mkdir /home/stack/templates/custom`
-3. Place all files in this repo in /home/stack/templates/custom
+* Deploy your overcloud and validate standard functionality
+* Create a subdirectory in your local templates directory `mkdir /home/stack/templates/custom`
+* Place all files in this repo in /home/stack/templates/custom
 ```
 cd /home/stack
 git clone https://github.com/jonjozwiak/openstack.git
 cp openstack/director-examples/serialproxy/* /home/stack/templates/custom
 ```
-4. Execure the overcloud deploy with the new templates added:
+* Execute the overcloud deploy with the new templates added:
 ``` 
 -e /home/stack/templates/custom/nova-serialproxy-post-deploy.yaml
 ```
