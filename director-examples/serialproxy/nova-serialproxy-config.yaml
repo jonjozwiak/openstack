@@ -1,0 +1,22 @@
+heat_template_version: 2014-10-16
+
+description: >
+ Configure Nova Serial Proxy / Console on Controllers and Compute
+parameters:
+ servers:
+  type: json
+
+resources:
+
+ ExtraConfig:
+  type: OS::Heat::SoftwareConfig
+  properties:
+   group: script
+   config: {get_file: /home/stack/templates/custom/nova-serialproxy-config.py}
+
+ ExtraDeployments:
+  type: OS::Heat::SoftwareDeployments
+  properties:
+   servers: {get_param: servers}
+   config: {get_resource: ExtraConfig}
+   actions: ['CREATE', 'UPDATE']

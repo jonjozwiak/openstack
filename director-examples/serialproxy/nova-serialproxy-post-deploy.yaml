@@ -1,0 +1,3 @@
+resource_registry:
+ OS::TripleO::NodeExtraConfigPost: /home/stack/templates/custom/nova-serialproxy-config.yaml
+
