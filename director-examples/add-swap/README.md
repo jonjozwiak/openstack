@@ -2,8 +2,8 @@
 
 By default OSP Director will deploy nodes without any swap space.  To enable swap with a new deployment there is a documented solution as follows:
 
-https://access.redhat.com/solutions/2148341
-https://bugzilla.redhat.com/show_bug.cgi?id=1259539
+* https://access.redhat.com/solutions/2148341
+* https://bugzilla.redhat.com/show_bug.cgi?id=1259539
 
 If you've already deployed, you will not have disk space available to add more swap (unless adding a physical disk is possible).  You can allocate swap in a file manually if desired: 
 
