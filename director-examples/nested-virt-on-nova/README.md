@@ -67,6 +67,7 @@ Here we will use the existing RHEL qcow that we have previously used.  Copy this
 NOTE: ensure /var/lib/libvirt/images/rhel-guest-image-7.2-20151102.0.x86_64.qcow2 exists
 
   * Create cloud-init source
+
   Cloud images expect a cloud-init source in order to do post-build customization such as setting hostname and password.  We will create an iso to pass this data
   ```
 mkdir /tmp/cidata
