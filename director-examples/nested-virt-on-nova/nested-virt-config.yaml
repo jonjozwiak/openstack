@@ -1,0 +1,22 @@
+heat_template_version: 2014-10-16
+
+description: >
+ Configure Nested Virtualization on Nova Compute Node
+parameters:
+ servers:
+  type: json
+
+resources:
+
+ ExtraConfig:
+  type: OS::Heat::SoftwareConfig
+  properties:
+   group: script
+   config: {get_file: /home/stack/templates/custom/nested-virt-config.py}
+
+ ExtraDeployments:
+  type: OS::Heat::SoftwareDeployments
+  properties:
+   servers: {get_param: servers}
+   config: {get_resource: ExtraConfig}
+   actions: ['CREATE', 'UPDATE']
