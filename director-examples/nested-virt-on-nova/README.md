@@ -67,8 +67,8 @@ Here we will use the existing RHEL qcow that we have previously used.  Copy this
 NOTE: ensure /var/lib/libvirt/images/rhel-guest-image-7.2-20151102.0.x86_64.qcow2 exists
 
   * Create cloud-init source
-Cloud images expect a cloud-init source in order to do post-build customization such as setting hostname and password.  We will create an iso to pass this data
-```
+  Cloud images expect a cloud-init source in order to do post-build customization such as setting hostname and password.  We will create an iso to pass this data
+  ```
 mkdir /tmp/cidata
 cat << EOF > /tmp/cidata/meta-data
 instance-id: l2guest
@@ -87,9 +87,9 @@ EOF
 
 genisoimage -o /var/lib/libvirt/images/l2guest.iso -V cidata -r -J \
   /tmp/cidata/meta-data /tmp/cidata/user-data
-``` 
+  ``` 
   * Boot your instance & validate
-```
+  ```
 virt-install -n l2guest -r 2048 --os-type=linux --os-variant=rhel7 \
   --disk /var/lib/libvirt/images/rhel-guest-image-7.2-20151102.0.x86_64.qcow2,device=disk,bus=virtio \
   -w bridge=virbr0,model=virtio 
@@ -101,12 +101,11 @@ virsh console l2guest
 # with the password set in the CI data
  
 # Validate external connectivity
-```
 ping 8.8.8.8
-```
+  ```
  
-Alternatively if you do not want to go through the cloud-init setup, you can test with a cirros image as it has a password already set:
-```
+  Alternatively if you do not want to go through the cloud-init setup, you can test with a cirros image as it has a password already set:
+  ```
 virt-install -n l2guest -r 512 --os-type=linux \
   --disk /var/lib/libvirt/images/cirros-0.3.4-x86_64-disk.img,device=disk,bus=virtio \
   -w bridge=virbr0,model=virtio --vnc --noautoconsole --import
@@ -116,6 +115,6 @@ virsh console l2guest
 
 # Validate external connectivity 
 ping 8.8.8.8 
-````
+  ````
 
 
