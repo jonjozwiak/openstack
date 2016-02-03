@@ -1,9 +1,9 @@
 # Nested Virt on Nova
 This details how to setup nested virtualization with Nova on RHEL OSP 7 and deployed using OSP Director.  This will include the following layers: 
 
-L0 = OpenStack Nova Compute node on physical hardware
-L1 = RHEL 7 virtual machine running KVM
-L2 = nested virtual guest running on top of the L1 hypervisor
+* L0 = OpenStack Nova Compute node on physical hardware
+* L1 = RHEL 7 virtual machine running KVM
+* L2 = nested virtual guest running on top of the L1 hypervisor
 
 Note that this setup passes through the host's CPU to the virtual instances.  Keep in mind that if you are also planning to use live migration, all hosts in the cluster MUST then have the exact same CPU model.
 
@@ -38,12 +38,12 @@ To validate nested virtualization we will boot a RHEL 7 instance, configure it a
 NOTE: This requires access to RHN (or a local repo)
 
 * Prepare your RHEL KVM virtual machine 
-** Get a RHEL 7 glance image (https://access.redhat.com/downloads -> Red Hat Enterprise Linux -> KVM Guest Image -> Download Now)
+..* Get a RHEL 7 glance image (https://access.redhat.com/downloads -> Red Hat Enterprise Linux -> KVM Guest Image -> Download Now)
 ```
 . overcloudrc
 glance image-create --name "rhel-7.2-x86_64" --disk-format qcow2 --container-format bare --file rhel-guest-image-7.2-20151102.0.x86_64.qcow2 --is-public true
 ```
-** Boot your nova instance - make certain you have enough memory to run a guest within this instance
+..* Boot your nova instance - make certain you have enough memory to run a guest within this instance
 ```
 neutron net-list
 PRIVNET1ID=<your privnet>
@@ -56,11 +56,11 @@ ping -c 1 $FLOATINGIP
 ssh -i adminkey.pem cloud-user@$FLOATINGIP
 sudo su - 
 ```
-** Setup the host for KVM.  I provided a script you can used called `kvm-setup.sh` but you must put in your own RHN credentials
+..* Setup the host for KVM.  I provided a script you can used called `kvm-setup.sh` but you must put in your own RHN credentials
 * Create your L2 nested guest
 Here we will use the existing RHEL qcow that we have previously used.  Copy this to the L1 hypervisor instance (nestedhypervisor).  Also we'll use a NAT network called virbr0 on 192.168.122.0 which KVM sets up by default
 NOTE: ensure /var/lib/libvirt/images/rhel-guest-image-7.2-20151102.0.x86_64.qcow2 exists
-** Create cloud-init source
+..* Create cloud-init source
 Cloud images expect a cloud-init source in order to do post-build customization such as setting hostname and password.  We will create an iso to pass this data
 ```
 mkdir /tmp/cidata
@@ -81,7 +81,7 @@ EOF
 
 genisoimage -o /var/lib/libvirt/images/l2guest.iso -V cidata -r -J /tmp/cidata/meta-data /tmp/cidata/user-data
 ``` 
-** Boot your instance & validate
+..* Boot your instance & validate
 ```
 virt-install -n l2guest -r 2048 --os-type=linux --os-variant=rhel7 --disk /var/lib/libvirt/images/rhel-guest-image-7.2-20151102.0.x86_64.qcow2,device=disk,bus=virtio -w bridge=virbr0,model=virtio --disk path=/var/lib/libvirt/images/l2guest.iso,device=cdrom --vnc --noautoconsole --import
 
