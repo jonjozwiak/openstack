@@ -39,11 +39,11 @@ NOTE: This requires access to RHN (or a local repo)
 
 * Prepare your RHEL KVM virtual machine 
   * Get a RHEL 7 glance image (https://access.redhat.com/downloads -> Red Hat Enterprise Linux -> KVM Guest Image -> Download Now)
-```
+  ```
 . overcloudrc
 glance image-create --name "rhel-7.2-x86_64" --disk-format qcow2 --container-format bare \
    --file rhel-guest-image-7.2-20151102.0.x86_64.qcow2 --is-public true
-```
+  ```
   * Boot your nova instance - make certain you have enough memory to run a guest within this instance
 ```
 neutron net-list
@@ -60,6 +60,7 @@ sudo su -
 ```
   * Setup the host for KVM.  I provided a script you can used called `kvm-setup.sh` but you must put in your own RHN credentials
 * Create your L2 nested guest
+
 Here we will use the existing RHEL qcow that we have previously used.  Copy this to the L1 hypervisor instance (nestedhypervisor).  Also we'll use a NAT network called virbr0 on 192.168.122.0 which KVM sets up by default
 NOTE: ensure /var/lib/libvirt/images/rhel-guest-image-7.2-20151102.0.x86_64.qcow2 exists
   * Create cloud-init source
