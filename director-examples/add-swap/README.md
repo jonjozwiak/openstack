@@ -1,4 +1,4 @@
-= Adding Swap to Overcloud nodes during deployment
+# Adding Swap to Overcloud nodes during deployment
 
 By default OSP Director will deploy nodes without any swap space.  To enable swap with a new deployment there is a documented solution as follows:
 
