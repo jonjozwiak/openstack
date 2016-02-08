@@ -90,11 +90,14 @@ vi /home/stack/templates/custom/ad-post-deploy.yaml
   ldap_password is the password you set for the account
   ldap_suffix: The suffix of your distinguished name (i.e. DC=example,DC=com)
   ldap_user_tree is the tree where users are created in AD (i.e. CN=Users,DC=example,DC=com)
-  ldap_enabled_group is the group you created in AD.  Users in this group will be visible to OpenStack (i.e. CN=grp-openstack,CN=Users,DC=Users,DC=example,DC=com)
+  ldap_enabled_group is the group you created in AD.  Users in this group will be visible to OpenStack 
+        (i.e. CN=grp-openstack,CN=Users,DC=Users,DC=example,DC=com)
   ldap_group_tree is the path where groups are created in AD (i.e. CN=Groups,DC=example,DC=com)
-  ldap_group_filter: Only groups in this filter will be seen in OpenStack (i.e. CN=grp-openstack,CN=Users,DC=Users,DC=example,DC=com)
+  ldap_group_filter: Only groups in this filter will be seen in OpenStack 
+        (i.e. CN=grp-openstack,CN=Users,DC=Users,DC=example,DC=com)
   ldap_cert_name: File name of the X509 Cert from your AD server (i.e. dc1.example.com.cer)
-  ldap_cert_url: URL on the director host where overcloud can grab this file (i.e. http://192.168.0.10/dc1.example.com.cer)
+  ldap_cert_url: URL on the director host where overcloud can grab this file 
+        (i.e. http://192.168.0.10/dc1.example.com.cer)
     NOTE: Use the provisioning IP for the director host
     NOTE: leave ldap_cert_name and ldap_cert_url blank if not doing LDAPS
 ```
@@ -136,7 +139,9 @@ These are just a few notes for troubleshooting.  They are by no means extensive 
 * LDAPS and LDAP use different ports so use the right one for your connection type.  (389 for ldap, 636 for ldaps)
 
 * Verify you can contact the domain controller 
+```
   nc -v -i 5 -w 5 dc1.example.com 636   # Or 389 for LDAP
+```
   This should connect, idle for 5 seconds, and then disconnect
   If you get a 'Connection reset by peer' than the connection is not working correctly
 
