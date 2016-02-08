@@ -19,7 +19,6 @@ There is some configuration detail you need from AD.  In addition, you will want
 ```
 # Open a Power Shell terminal get your domain name 
 Get-ADDomain | select NetBIOSName
-
 ```
 If Get-ADDomain fails, you need to import the module.  It should be there in a base install.  I'm told that it could need Windows Management Framework 4.0 or Remote Server Administration Tools (RSAT).  But mine had the module.  I imported it as follows: 
 ```
@@ -56,21 +55,20 @@ NOTE: If your service account is disabled, you will NOT be able to bind to the d
 http://windowsitpro.com/active-directory/how-use-ldap-over-ssl-lock-down-ad-traffic
 
 NOTE: If you want to list a user to know what fields you are mapping, you can use 'Get-ADUser <UserName>
-NOTE: If you want to list a group, Get-ADGroup <GroupName>
-   - or - Get-ADGroup <GroupName> -Filter {SamAccountName -like "Project*"}
+NOTE: If you want to list a group, Get-ADGroup <GroupName> (or Get-ADGroup <GroupName> -Filter {SamAccountName -like "Project*"})
 
 * Save the certificate on your OSP director host in /var/www.  (The script running on the controllers will pull this in
 ** If you need help with this, I have steps in README-ad-lab.md with the header 'Export Certificate'
 
   
 * Verify you can connect on port 636 (really only needed in a new lab environment)
-** Start -> Run - ldp.exe
-** Connection -> Connect
-** Server = <your fully qualified AD controller name>
-** Port = 636 
-** Leave the boxes unchecked.  
-** You should see a connection established and not see any errors.  If that is the case it works and is accepting connections.  
-** Connection -> Disconnect
+  * Start -> Run - ldp.exe
+  * Connection -> Connect
+  * Server = <your fully qualified AD controller name>
+  * Port = 636 
+  * Leave the boxes unchecked.  
+  * You should see a connection established and not see any errors.  If that is the case it works and is accepting connections.  
+  * Connection -> Disconnect
 
 ## Deploy your overcloud with AD integration enabled
 * Deploy your overcloud and validate standard functionality

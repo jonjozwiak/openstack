@@ -34,28 +34,28 @@ I followed these directions (Steps 5-7):
 http://stef.thewalter.net/how-to-create-active-directory-domain.html
 
 * Set IP Address
-** Start -> Network -> Change adapter settings 
-** Right click Local Area Connection -> Properties
-** Click Internet protocol version 4 (TCP/IPv$) and then click properties
-** Set IP, subnet, gateway, and DNS appropriately
-** Click OK or close to save
+  * Start -> Network -> Change adapter settings 
+  * Right click Local Area Connection -> Properties
+  * Click Internet protocol version 4 (TCP/IPv$) and then click properties
+  * Set IP, subnet, gateway, and DNS appropriately
+  * Click OK or close to save
 * Set the Machnie Name 
-** Start -> Computer.  Right click on computer and choose properties
-** Click Change Settings 
-** In the Computer name tab click Change.  
-** Set the name to what you want.  Ignore the member of domain / workgroup stuff 
-** Click OK or Close
+  * Start -> Computer.  Right click on computer and choose properties
+  * Click Change Settings 
+  * In the Computer name tab click Change.  
+  * Set the name to what you want.  Ignore the member of domain / workgroup stuff 
+  * Click OK or Close
 * Setup Active Directory 
-** Start -> Run -> dcpromo
-** Create a new domain in a new forest
-** FQDN of the forest root domain: cloud.example.com
-** Forest Level: 2008R2
-** Checked DNS Server
-** Choose yes for delegation of DNS server cannot be created
-** Leave default paths 
-** Domain Admin Password choose what you want - Can be same or different than Administrator
-** Click Next to complete (after reviewing selections)
-** Reboot (It takes a while as it has some stuff to configure)
+  * Start -> Run -> dcpromo
+  * Create a new domain in a new forest
+  * FQDN of the forest root domain: cloud.example.com
+  * Forest Level: 2008R2
+  * Checked DNS Server
+  * Choose yes for delegation of DNS server cannot be created
+  * Leave default paths 
+  * Domain Admin Password choose what you want - Can be same or different than Administrator
+  * Click Next to complete (after reviewing selections)
+  * Reboot (It takes a while as it has some stuff to configure)
 
 Note at this point you will just have base LDAP - port 389 (no LDAPS - port 636).  So everything is clear text.  It's functional, but you'd never use it in production.  
 
@@ -100,7 +100,7 @@ https://technet.microsoft.com/en-us/library/cc875810.aspx
 * In the certification templates console, right-click Kerberos Authentication and select 'Duplicate template' 
 * You can leave as Windows Server 2003
 * Set the template display name.  I chose 'LDAPoverSSL'
-** Validity period: 5 years... renewal: 6 week ... Could leave default 
+  * Validity period: 5 years... renewal: 6 week ... Could leave default 
 * On Request Handling tab, check 'Allow private key to be exported'
 * Click OK
 * Go back to the Certification Authority console, expand your CA on the left, and click 'Certification Templates'
@@ -111,15 +111,15 @@ https://technet.microsoft.com/en-us/library/cc875810.aspx
 * Click Start-> Run-> type 'mmc' and hit enter
 * In the mmc window (console1), click File -> Add/Remove Snap in
 * Select the 'Certificates' snap-in and click 'Add' 
-** Select 'Computer account' and click Next
-** Select 'Local computer' as we're going to use this cert for our local AD instance
-** Click 'OK' to finish
+  * Select 'Computer account' and click Next
+  * Select 'Local computer' as we're going to use this cert for our local AD instance
+  * Click 'OK' to finish
 * In the console tree expand 'Certificates (Local Computer)' -> Personal 
 * Right-click certificates (under Personal), click 'All Tasks', and then click 'Request New Certificate'
-** In certificate enrollment, click 'Next'
-** Leave active directory enrollment policy as is and click Next
-** Check the certificate you created above and click 'Enroll'
-** Click 'Finish' when done.  
+  * In certificate enrollment, click 'Next'
+  * Leave active directory enrollment policy as is and click Next
+  * Check the certificate you created above and click 'Enroll'
+  * Click 'Finish' when done.  
 * You should now see a new certificate in your window which you can double click to see the details.
 
 Nearly done... Now we just need to export the cert for use while setting up our OpenStack clients to connect to AD...
