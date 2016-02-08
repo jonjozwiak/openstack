@@ -37,6 +37,8 @@ def setup_serialproxy_controller():
 
  print cmd(["openstack-config", "--set", "/etc/nova/nova.conf", "serial_console", "enabled", "true"])
  print cmd(["openstack-config", "--set", "/etc/nova/nova.conf", "serial_console", "base_url", "ws://"+nova_api_bind_address+":6083"])
+ print cmd(["openstack-config", "--set", "/etc/nova/nova.conf", "serial_console", "serialproxy_host", nova_api_bind_address])
+ print cmd(["openstack-config", "--set", "/etc/nova/nova.conf", "serial_console", "serialproxy_port", "6083"])
 
  #test to see if haproxy.cfg has already been adjusted
  proxy_cfg_adjusted = False
