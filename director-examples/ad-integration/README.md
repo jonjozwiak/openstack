@@ -142,7 +142,7 @@ These are just a few notes for troubleshooting.  They are by no means extensive 
 ```
   nc -v -i 5 -w 5 dc1.example.com 636   # Or 389 for LDAP
 ```
-  This should connect, idle for 5 seconds, and then disconnect
+  This should connect, idle for 5 seconds, and then disconnect.  
   If you get a 'Connection reset by peer' than the connection is not working correctly
 
 * Outside of keystone, validate you can bind to the domain:
