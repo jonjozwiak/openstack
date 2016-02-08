@@ -221,10 +221,18 @@ EOF
     exit 1
   fi
 
+  # Create the domain if it does not exist
   source /root/overcloudrc_admin_v3
-  openstack domain create --description "${varldapdomain} LDAP Domain" ${varldapdomain}
+  if [[ $(openstack domain list | grep ${varldapdomain} | wc -l) -eq 0 ]]; then 
+    openstack domain create --description "${varldapdomain} LDAP Domain" ${varldapdomain}
+  fi 
 
   # Create the domain configuration file
+  DOMAINBKUP=""
+  if [[ -f /etc/keystone/domains/keystone.${varldapdomain}.conf ]] ; then
+     DOMAINBKUP=/etc/keystone/domains/keystone.${varldapdomain}.conf.$(date +%m%d%y%H%M)
+     cp -p /etc/keystone/domains/keystone.${varldapdomain}.conf $DOMAINBKUP
+  fi
   cat <<EOF > /etc/keystone/domains/keystone.${varldapdomain}.conf
 [ldap]
 url=${varldapserver}
@@ -287,9 +295,13 @@ EOF
 
   ### Note - admin will not work now until keystone is restarted
 
-  # restart keystone to apply domain changes from above 
-  echo "INFO: Restarting OpenStack"
-  systemctl restart openstack-keystone
+  # restart keystone to apply domain changes from above (only if domain conf changed)
+  if [[ $DOMAINBKUP != "" ]] ; then
+    if [[ $(diff $DOMAINBKUP /etc/keystone/domains/keystone.${varldapdomain}.conf | wc -l) -ne 0 ]]; then
+      echo "INFO: Restarting OpenStack"
+      systemctl restart openstack-keystone
+    fi 
+  fi
 
   # Can validate by doing: 
   # openstack user list --domain <LDAP Domain>  # ${varldapdomain}
