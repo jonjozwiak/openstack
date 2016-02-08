@@ -117,7 +117,9 @@ openstack role assignment list --role admin --user <user ID> --domain $LDAPDOMAI
 # You should now be able to log into the dashboard as this user with their AD password
 
 # Allow AD group (and all it's users) to access projects
-### NOTE - Adding an AD group does NOT give a user access to login to openstack!  It only gives them access to the project you've associated.  You still need to add the user to the grp-openstack in AD ... 
+### NOTE - Adding an AD group does NOT give a user access to login to openstack!  
+### It only gives them access to the project you've associated.  
+### You still need to add the user to the grp-openstack in AD ... 
 openstack project create --domain $LDAPDOMAIN --enable --description "LDAP Group Testing" ldaptestproject2
 openstack group list --domain $LDAPDOMAIN
 openstack role list 
@@ -139,12 +141,15 @@ These are just a few notes for troubleshooting.  They are by no means extensive 
   If you get a 'Connection reset by peer' than the connection is not working correctly
 
 * Outside of keystone, validate you can bind to the domain:
-  # Non SSL - likely not possible with AD
+  * Non SSL - likely not possible with AD
+  ```
 ldapsearch -h <AD IP address> -D cn=svc-openstack,cn=users,dc=example,dc=com -w <password> 
-This should return a number of entries.  
-  # SSL 
+```
+  * SSL 
+  ```
 ldapsearch -x -H ldaps://<ad fqdn>:636 -D  cn=svc-openstack,cn=users,dc=example,dc=com -w <password> 
-  #### Add -d 1 to this command to get more verbose feedback
+```
+  * Add -d 1 to this command to get more verbose feedback
 
 * If you receive an error when logging into the dashboard which says "Error: Unauthorized: Unable to retrieve usage information", there is likely a message in the nova-api.log which has "Unable to find authentication token in headers".  Make certain Nova is setup for v3 auth.  
 
