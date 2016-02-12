@@ -6,5 +6,5 @@ Do this in the image prior to image upload into glance
 ```
 virt-customize -a overcloud-full.qcow2 --run-command 'sudo sed -i s/net.ifnames=0/net.ifnames=1/g /etc/default/grub'
 virt-customize -a overcloud-full.qcow2 --run-command 'sudo grub2-mkconfig -o /boot/grub2/grub.cfg'
-openstack overcloud image upload --image-path /home/stack/images
+openstack overcloud image upload --image-path /home/stack/images --update-existing
 ```
