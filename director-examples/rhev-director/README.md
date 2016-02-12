@@ -6,5 +6,7 @@ The below link shows what is required to run OSP Director on RHEV:
 https://access.redhat.com/solutions/2060423 
   -> This highlights the changes needed for director
 
+Don't forget to shutdown director VM, edit -> show advanced options -> custom properties -> add macspoof=true 
+
 RHEV/VMware Overcloud Nodes: https://access.redhat.com/solutions/1598553
   -> Talks about fencing if controllers are on RHEV
