@@ -1,6 +1,10 @@
-= OSP Director on RHEV
+# OSP Director on RHEV
 
-The below link shows what is required to run OSP Director on RHEV
-https://access.redhat.com/solutions/1598553
--or-
-https://access.redhat.com/solutions/2060423
+With Director hosted in a RHEV VM, in order for PXE booting work mac spoofing must be enabled at the RHEV platform level.  If not, it will go through introspection fine, but the deployment will fail to assign IPs to the mac addresses.
+
+The below link shows what is required to run OSP Director on RHEV:
+https://access.redhat.com/solutions/2060423 
+  -> This highlights the changes needed for director
+
+RHEV/VMware Overcloud Nodes: https://access.redhat.com/solutions/1598553
+  -> Talks about fencing if controllers are on RHEV
