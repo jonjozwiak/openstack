@@ -8,6 +8,7 @@ http://www.freeipa.org/page/Setting_up_Active_Directory_domain_for_testing_purpo
 
 But I'll highlight here: 
 * Download the Windows 2008R2 EE VHD: http://www.microsoft.com/en-us/download/details.aspx?id=2227
+  * Note that 2012R2 is available here: https://www.microsoft.com/en-us/evalcenter/evaluate-windows-server-2012-r2
 * Unpack the images
 ```
 mkdir -p /tmp/vhd
