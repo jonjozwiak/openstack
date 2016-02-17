@@ -34,6 +34,8 @@ sed -i -e 's/^repos=.*/repos="repos --disable=* --enable rhel-7-server-rpms"/' ~
 ```
 
 An Example of a Satellite registration (requiring activation key).  The activation key should have the same repos as listed above
+
+IMPORTANT: Use http.  NOT https.  This will grab the katello rpm via http.  Then it will configure your actual Satellite registration with https.
 ```
 parameter_defaults:
   rhel_reg_activation_key: "[Activation Key]"

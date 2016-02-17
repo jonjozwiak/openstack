@@ -1,6 +1,6 @@
 # Using NFS to back Cinder and Glance
 
-If you want to setup NFS as your storage backend, create shares on your NFS Server for cinder and glance with options /nfsshare_cinder *(rw,no_root_squash).  They could be 777 or correct the ownership so they will be accessible.  Then configure director to use the storage
+If you want to setup NFS as your storage backend, create shares on your NFS Server for cinder and glance with options /nfsshare_cinder *(rw,no_root_squash).  They could be 777 or correct the ownership so they will be accessible.  In my case, I kept my NFS shares with 755 permissions and then just did a chown so they were owned by the glance and cinder groups respectively.  (chown 161:161 glance ; chown 165:165 cinder)  Then configure director to use the storage:
 ```
 cp ~/templates/environments/storage-environment.yaml ~/templates/environments/storage-environment.yaml.orig
 vi ~/templates/environments/storage-environment.yaml

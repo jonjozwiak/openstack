@@ -33,7 +33,8 @@ createrepo /var/www/html/repos/rhel-7-server-openstack-7.0-rpms
 ## Image Updates
 The default overcloud images do not ship with the openstack-nova-serialproxy package.  I will show updating the image prior to upload.  However, you could also register the system with RHN or use local repos when provisioning the overcloud and install as a pre-step.  
 
-This step assumes you have created a local repo as described above
+This step assumes you have created a local repo as described above.  
+IMPORTANT: If you have already registered your overcloud with RHN, you can skip these image updates and go direct to updating your overcloud with serial console
 
 ```
 # As stack user

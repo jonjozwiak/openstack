@@ -47,13 +47,18 @@ http://stef.thewalter.net/how-to-create-active-directory-domain.html
   * Set the name to what you want.  Ignore the member of domain / workgroup stuff 
   * Click OK or Close
 * Setup Active Directory 
-  * Start -> Run -> dcpromo
+  * Start -> Server Manager -> Dashboard -> Add roles and features
+  * Click Next
+  * Click Next for role or feature based install 
+  * Click next to only apply on the current server
+  * Select AD Domain Services and DNS Server.  Click Next until it goes through the install.  (Typically I'd expect a DHCP server as well, but I'm not using it)
+  * In Win2012, Select promote this server to a domain controller prior to closing the window.  On Win 2008 you do Start -> Run -> dcpromo
   * Create a new domain in a new forest
   * FQDN of the forest root domain: cloud.example.com
-  * Forest Level: 2008R2
-  * Checked DNS Server
+  * Forest Level: 2008R2	# Or 2012 R2 if doing 2012
+  * Checked DNS Server		# Win 2008 only
   * Choose yes for delegation of DNS server cannot be created
-  * Leave default paths 
+  * Leave default paths  	# Win2012 - Leave default netbios name too
   * Domain Admin Password choose what you want - Can be same or different than Administrator
   * Click Next to complete (after reviewing selections)
   * Reboot (It takes a while as it has some stuff to configure)
@@ -70,10 +75,10 @@ http://social.technet.microsoft.com/wiki/contents/articles/2980.ldap-over-ssl-ld
 https://technet.microsoft.com/en-us/library/cc875810.aspx
 
 ### Configure CA
-* Server Manager -> click Roles
+* Server Manager -> click Roles  (Win2012R2 - Server Manager - Dashbard)
 * Under roles summary click 'Add roles'
 * Click next once to get to the 'Server Roles' selection.  
-* Check 'Active Directory Certificate Services' and click Next
+* Check 'Active Directory Certificate Services' and click Next (In Win2012R2 you need to configure the role after installing.  You do this by selecting the role in server manager's main view)
 * Click next to move past role services.  
 * Setup type should be enterprise.  
 * CA type should be Root CA
@@ -135,12 +140,7 @@ Nearly done... Now we just need to export the cert for use while setting up our 
 * Click Finish
 * Click OK when export is successful...
 
-
-
-### Configure the CRL distribution settings on your AD controller
-Note - I had this documented during my setup, but think I didn't use it.  Anyways, I left it here just in case... 
-* Click Start -> Admin Tools -> Certification Authority 
-* Right click your CA: cloud-<hostname>-CA and click 'Properties'
-* On the Extensions tab click Add 
+### Copy the certificate to your director node in /var/www
+* I use putty for lack of a better option: http://www.chiark.greenend.org.uk/~sgtatham/putty/download.html
 
 
