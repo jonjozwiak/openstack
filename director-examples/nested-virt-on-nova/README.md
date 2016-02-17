@@ -29,8 +29,14 @@ cp openstack/director-examples/nested-virt-on-nova/* /home/stack/templates/custo
 ``` 
 -e /home/stack/templates/custom/nested-virt-post-deploy.yaml
 ```
+NOTE: You cannot have multiple NodeExtraConfigPost definitions.  If you want to 
+do multiple SoftwareConfigs in post deploy, you can create something like config
+-post-deploy.yaml that calls a single config yaml.  Then in that config yaml you
+ can have multiple SoftwareConfig and SoftwareDeployments resources.  Also, you 
+can use 'depends_on: deploymentname' in the definition of a SoftwareConfig if yo
+u need one to complete before the other. 
 
-TODO: Nova compute might require a restart at this point. 
+TODO: Nova compute requires a restart at this point. 
 
 ## Validate nested virtualization 
 To validate nested virtualization we will boot a RHEL 7 instance, configure it as a hypervisor, and then provision an instance underneath that.  

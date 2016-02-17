@@ -8,15 +8,15 @@ parameters:
 
 resources:
 
- ExtraConfig:
+ SerialProxyConfig:
   type: OS::Heat::SoftwareConfig
   properties:
    group: script
    config: {get_file: /home/stack/templates/custom/nova-serialproxy-config.py}
 
- ExtraDeployments:
+ SerialProxyDeployments:
   type: OS::Heat::SoftwareDeployments
   properties:
    servers: {get_param: servers}
-   config: {get_resource: ExtraConfig}
+   config: {get_resource: SerialProxyConfig}
    actions: ['CREATE', 'UPDATE']

@@ -8,15 +8,15 @@ parameters:
 
 resources:
 
- ExtraConfig:
+ NestedVirtConfig:
   type: OS::Heat::SoftwareConfig
   properties:
    group: script
    config: {get_file: /home/stack/templates/custom/nested-virt-config.py}
 
- ExtraDeployments:
+ NestedVirtDeployments:
   type: OS::Heat::SoftwareDeployments
   properties:
    servers: {get_param: servers}
-   config: {get_resource: ExtraConfig}
+   config: {get_resource: NestedVirtConfig}
    actions: ['CREATE', 'UPDATE']

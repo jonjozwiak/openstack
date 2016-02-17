@@ -84,6 +84,8 @@ cp openstack/director-examples/serialproxy/* /home/stack/templates/custom
 -e /home/stack/templates/custom/nova-serialproxy-post-deploy.yaml
 ```
 
+NOTE: You cannot have multiple NodeExtraConfigPost definitions.  If you want to do multiple SoftwareConfigs in post deploy, you can create something like config-post-deploy.yaml that calls a single config yaml.  Then in that config yaml you can have multiple SoftwareConfig and SoftwareDeployments resources.  Also, you can use 'depends_on: deploymentname' in the definition of a SoftwareConfig if you need one to complete before the other. 
+
 ## Validate serial console functionality 
 The Nova serial console requires websockets and is not available just by telnet or ssh.  There is a simple python wrapper for this written by Lars Kellogg-Stedman which we will use.  Below shows the process to boot a server and connect to it's console.  This assumes your OpenStack environment has already been verified and has networks, images, and keypairs ready.  
 
