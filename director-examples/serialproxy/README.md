@@ -75,6 +75,7 @@ openstack overcloud image upload --image-path /home/stack/images --update-existi
 * Place all files in this repo in /home/stack/templates/custom
 ```
 cd /home/stack
+mkdir -p /home/stack/templates/custom
 git clone https://github.com/jonjozwiak/openstack.git
 cp openstack/director-examples/serialproxy/* /home/stack/templates/custom
 ```
