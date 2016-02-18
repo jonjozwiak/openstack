@@ -20,10 +20,13 @@ def setup_serialproxy_controller():
  nova_api_bind_address = nova_api_bind_address.translate(None, "\n")
  compute_proxyclient_address = compute_proxyclient_address.translate(None, "\n")
  compute_proxy_host = compute_proxy_host.translate(None, "\n")
- controller_node_names = controller_node_names.translate(None, "[\"]\n") 
- nova_api_node_ips = nova_api_node_ips.translate(None, "[\"]\n") 
- controller_node_names = [controller_node_names]
- nova_api_node_ips = [nova_api_node_ips]
+ controller_node_names = controller_node_names.translate(None, " [\"]\n") 
+ nova_api_node_ips = nova_api_node_ips.translate(None, " [\"]\n") 
+
+ nova_api_node_ips = nova_api_node_ips.split(",")
+ controller_node_names = controller_node_names.split(",")
+ #controller_node_names = [controller_node_names]
+ #nova_api_node_ips = [nova_api_node_ips]
 
  # Prints per character
  print "Controllers found:"
