@@ -60,6 +60,7 @@ def setup_serialproxy_controller():
   for (host,ip) in zip(controller_node_names, nova_api_node_ips):
     proxy_conf.write("  server %s %s:6083 check fall 5 inter 2000 rise 2\n" % (host, ip))
   proxy_conf.close()
+  print cmd(["systemctl", "reload", "haproxy"])
  else:
   print "INFO: Not adjusting haproxy.cfg since it appears to have the nova serialproxy config already"
 
