@@ -47,7 +47,21 @@ def setup_nested_virt():
     print "ERROR: kvm_intel module reload failed.  Are instances running?"
 
   # Nova cpu mode host-passthrough
-  print cmd(["openstack-config", "--set", "/etc/nova/nova.conf", "libvirt", "cpu_mode", "host-passthrough"])
+  nova_passthrough_exists = False
+  try:
+   passthrough_get =  cmd(["openstack-config", "--get", "/etc/nova/nova.conf", "libvirt", "cpu_mode"])
+   for line in passthrough_get.split('\n'):
+    if re.search('host-passthrough', line):
+     print "INFO: CPU mode already set to host-passthrough"
+     nova_passthrough_exists = True
+  except:
+    print "INFO: Nova CPU Host Passthrough not currently enabled"
+
+  if not nova_passthrough_exists:
+   print "INFO: Configuring nova.conf for CPU Host Passthrough"
+   print cmd(["openstack-config", "--set", "/etc/nova/nova.conf", "libvirt", "cpu_mode", "host-passthrough"])
+   print "INFO: Restarting nova compute"
+   print cmd(["systemctl", "restart", "openstack-nova-compute.service"])
 
  elif virt_extensions is "svm":
   # AMD Nested Virt Setup
@@ -75,7 +89,21 @@ def setup_nested_virt():
     print "ERROR: kvm_amd module reload failed.  Are instances running?"
 
   # Nova cpu mode host-passthrough
-  print cmd(["openstack-config", "--set", "/etc/nova/nova.conf", "libvirt", "cpu_mode", "host-passthrough"])
+  nova_passthrough_exists = False
+  try:
+   passthrough_get =  cmd(["openstack-config", "--get", "/etc/nova/nova.conf", "libvirt", "cpu_mode"])
+   for line in passthrough_get.split('\n'):
+    if re.search('host-passthrough', line):
+     print "INFO: CPU mode already set to host-passthrough"
+     nova_passthrough_exists = True
+  except:
+    print "INFO: Nova CPU Host Passthrough not currently enabled"
+
+  if not nova_passthrough_exists:
+   print "INFO: Configuring nova.conf for CPU Host Passthrough"
+   print cmd(["openstack-config", "--set", "/etc/nova/nova.conf", "libvirt", "cpu_mode", "host-passthrough"])
+   print "INFO: Restarting nova compute"
+   print cmd(["systemctl", "restart", "openstack-nova-compute.service"])
 
  else:
   print "ERROR: No virtualization extensions found" 

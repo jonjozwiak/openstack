@@ -33,6 +33,9 @@ subscription-manager repos --enable='rhel-7-server-rpms'
 yum -y install qemu-kvm libvirt libvirt-python libguestfs-tools virt-install
 systemctl enable libvirtd && systemctl start libvirtd
 
+# Clean up RHN Registration
+subscription-manager unregister
+
 # Enable ip forwarding 
 echo "net.ipv4.ip_forward = 1" /etc/sysctl.conf
 sysctl -p /etc/sysctl.conf

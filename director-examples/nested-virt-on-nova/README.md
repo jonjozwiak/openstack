@@ -64,13 +64,27 @@ ping -c 1 $FLOATINGIP
 ssh -i adminkey.pem cloud-user@$FLOATINGIP
 sudo su - 
   ```
-  * Setup the host for KVM.  I provided a script you can used called `kvm-setup.sh` but you must put in your own RHN credentials
+  * Setup the host for KVM.  I provided a script you can used called `kvm-setup.sh` but you must put in your own RHN credentials.  Also note, you must have dns resolution for this to work
+  ```
+    curl -o kvm-setup.sh https://raw.githubusercontent.com/jonjozwiak/openstack/master/director-examples/nested-virt-on-nova/kvm-setup.sh
+    chmod 755 kvm-setup.sh
+    vi kvm-setup.sh
+    # Add RHNUSER and RHNPASSWD to align with your account
+    ./kvm-setup.sh
+  ```
 
 * Create your L2 nested guest
 
 Here we will use the existing RHEL qcow that we have previously used.  Copy this to the L1 hypervisor instance (nestedhypervisor).  Also we'll use a NAT network called virbr0 on 192.168.122.0 which KVM sets up by default
 
-NOTE: ensure /var/lib/libvirt/images/rhel-guest-image-7.2-20151102.0.x86_64.qcow2 exists
+  * Copy your rhel guest image to the L1 hypervisor (from director node)
+  ```
+  scp -i adminkey.pem /home/stack/images/rhel-guest-image-7.2-20151102.0.x86_64.qcow2 cloud-user@$FLOATINGIP:/tmp
+  ssh -i adminkey.pem cloud-user@$FLOATINGIP
+  sudo su - 
+  mv /tmp/rhel-guest-image-7.2-20151102.0.x86_64.qcow2 /var/lib/libvirt/images
+  chcon -u system_u -r object_r -t virt_image_t /var/lib/libvirt/images/rhel-guest-image-7.2-20151102.0.x86_64.qcow2
+  ```
 
   * Create cloud-init source
 
@@ -85,11 +99,15 @@ EOF
 cat << EOF > /tmp/cidata/user-data
 #cloud-config
 ssh_pwauth: True
+disable_root: False
 chpasswd:
   list: |
-     root:redhat
-     cloud-user:redhat
+    root:redhat
+    cloud-user:redhat
   expire: False
+runcmd: 
+- sed -i'.orig' -e's/without-password/yes/' /etc/ssh/sshd_config
+- systemctl restart sshd
 EOF
 
 genisoimage -o /var/lib/libvirt/images/l2guest.iso -V cidata -r -J \
@@ -99,13 +117,15 @@ genisoimage -o /var/lib/libvirt/images/l2guest.iso -V cidata -r -J \
   ```
 virt-install -n l2guest -r 2048 --os-type=linux --os-variant=rhel7 \
   --disk /var/lib/libvirt/images/rhel-guest-image-7.2-20151102.0.x86_64.qcow2,device=disk,bus=virtio \
-  -w bridge=virbr0,model=virtio 
+  -w bridge=virbr0,model=virtio  \
   --disk path=/var/lib/libvirt/images/l2guest.iso,device=cdrom \
   --vnc --noautoconsole --import
 
 virsh console l2guest
-# You should be able to connet with either root or cloud-user
+### Be patient and wait after you see the login screen to see cloud init finish
+# You should be able to connect with either root or cloud-user
 # with the password set in the CI data
+
  
 # Validate external connectivity
 ping 8.8.8.8
