@@ -38,10 +38,26 @@ def setup_serialproxy_controller():
  except:
   print "Yum install openstack-nova-serialproxy failed!"
 
- print cmd(["openstack-config", "--set", "/etc/nova/nova.conf", "serial_console", "enabled", "true"])
- print cmd(["openstack-config", "--set", "/etc/nova/nova.conf", "serial_console", "base_url", "ws://"+nova_api_bind_address+":6083"])
- print cmd(["openstack-config", "--set", "/etc/nova/nova.conf", "serial_console", "serialproxy_host", nova_api_bind_address])
- print cmd(["openstack-config", "--set", "/etc/nova/nova.conf", "serial_console", "serialproxy_port", "6083"])
+ serial_enabled_exists = False
+ try: 
+  enabled_get =  cmd(["openstack-config", "--get", "/etc/nova/nova.conf", "serial_console", "enabled"])
+  for line in enabled_get.split('\n'):
+   if re.search('true', line):
+    print "INFO: serial console enabled already exists"
+    serial_enabled_exists = True
+   if re.search('True', line):
+    print "INFO: serial console enabled already exists"
+    serial_enabled_exists = True
+ except:
+  print "INFO: Serial Console not currently enabled"
+ 
+ if not serial_enabled_exists:
+  print "INFO: Configuring nova.conf for serial console"
+  print cmd(["openstack-config", "--set", "/etc/nova/nova.conf", "serial_console", "enabled", "true"])
+  print cmd(["openstack-config", "--set", "/etc/nova/nova.conf", "serial_console", "base_url", "ws://"+nova_api_bind_address+":6083"])
+  print cmd(["openstack-config", "--set", "/etc/nova/nova.conf", "serial_console", "serialproxy_host", nova_api_bind_address])
+  print cmd(["openstack-config", "--set", "/etc/nova/nova.conf", "serial_console", "serialproxy_port", "6083"])
+
 
  #test to see if haproxy.cfg has already been adjusted
  proxy_cfg_adjusted = False
@@ -115,13 +131,29 @@ def setup_serialproxy_compute():
   print cmd(["yum", "-y", "install", "openstack-nova-serialproxy"])
  except:
   print "Yum install openstack-nova-serialproxy failed!"
+ 
+ serial_enabled_exists = False
+ try:
+  enabled_get =  cmd(["openstack-config", "--get", "/etc/nova/nova.conf", "serial_console", "enabled"])
+  for line in enabled_get.split('\n'):
+   if re.search('true', line):
+    print "INFO: serial console enabled already exists"
+    serial_enabled_exists = True
+   if re.search('True', line):
+    print "INFO: serial console enabled already exists"
+    serial_enabled_exists = True
+ except:
+  print "INFO: Serial Console not currently enabled"
 
- print cmd(["openstack-config", "--set", "/etc/nova/nova.conf", "serial_console", "enabled", "true"])
- print cmd(["openstack-config", "--set", "/etc/nova/nova.conf", "serial_console", "listen", "0.0.0.0"])
- print cmd(["openstack-config", "--set", "/etc/nova/nova.conf", "serial_console", "proxyclient_address", compute_proxyclient_address])
- print cmd(["openstack-config", "--set", "/etc/nova/nova.conf", "serial_console", "base_url", "ws://"+compute_proxy_host+":6083"])
- print cmd(["openstack-config", "--set", "/etc/nova/nova.conf", "serial_console", "port_range", compute_port_range])
-
+ if not serial_enabled_exists:
+  print "INFO: Configuring nova.conf for serial console"
+  print cmd(["openstack-config", "--set", "/etc/nova/nova.conf", "serial_console", "enabled", "true"])
+  print cmd(["openstack-config", "--set", "/etc/nova/nova.conf", "serial_console", "listen", "0.0.0.0"])
+  print cmd(["openstack-config", "--set", "/etc/nova/nova.conf", "serial_console", "proxyclient_address", compute_proxyclient_address])
+  print cmd(["openstack-config", "--set", "/etc/nova/nova.conf", "serial_console", "base_url", "ws://"+compute_proxy_host+":6083"])
+  print cmd(["openstack-config", "--set", "/etc/nova/nova.conf", "serial_console", "port_range", compute_port_range])
+  print "INFO: Restarting Nova Compute" 
+  print cmd(["systemctl", "restart", "openstack-nova-compute.service"])
 
  no_firewall_rule = True
  iptables_save_output = cmd(["iptables-save"])
