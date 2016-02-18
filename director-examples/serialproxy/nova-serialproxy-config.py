@@ -86,7 +86,8 @@ def setup_serialproxy_controller():
 
  # Create Pacemaker Resources
  no_pacemaker_resource = True
- pcs_save_output = cmd(["pcs", "resource", "list"])
+ # Note - should update this to only run on the hiera(bootstrap_node)
+ pcs_save_output = cmd(["pcs", "resource", "show"])
  for line in pcs_save_output.split('\n'):
   if re.search('openstack-nova-serialproxy', line):
    print "INFO: Pacemaker resource "+line+" already exists"
