@@ -1,5 +1,5 @@
 # Integrating Keystone with Active Director
-This set of templates allows integrating RHEL OSP 7 with Active Directory.  It is based on this document: https://access.redhat.com/documentation/en/red-hat-enterprise-linux-openstack-platform/7/integrate-with-identity-service/chapter-1-active-directory-integration
+This set of templates allows integrating RHEL OSP 7 with Active Directory.  It is based on this document: https://access.redhat.com/documentation/en/red-hat-enterprise-linux-openstack-platform/7/integrate-with-identity-service/chapter-1-active-directory-integration.  Also note this article has similar detail: https://access.redhat.com/articles/1193253
 
 These templates will migrate the overcloud to Keystone v3 and allow read-only access to Active Directory.  Users and Groups (Identity) come from AD while assignment (mapping users to roles) comes from OpenStack
 
