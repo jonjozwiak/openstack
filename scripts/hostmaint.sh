@@ -16,6 +16,7 @@ usage ()
     echo "                      enable - enable node"
     echo " -k <keystonerc file> Path to the keystone credentials file"
     echo " 			OpenStack credentials are needed"
+    echo " -s <sleep seconds>   Time to sleep between migration and check"
 }
 
 while getopts 'h:n:a:k:' OPTION
@@ -43,6 +44,9 @@ do
             else
               source $KEYSTONE
             fi
+            ;;
+        s)
+            export SLEEP=$OPTARG
             ;;
         *)
             usage
@@ -99,8 +103,11 @@ disable_hypervisor ()
     nova hypervisor-servers $NODE
 
     # Live migrate instances off the host
-    nova host-evacuate-list $NODE
+    nova host-evacuate-live $NODE
     #nova live-migration <instance> <host>  # Another option here
+
+    echo "Sleeping for $SLEEP seconds while instances migrate" 
+    sleep $SLEEP
 
     # Validate no instances remain 
     INSTANCE_COUNT=0
@@ -137,7 +144,14 @@ enable_hypervisor ()
 # Main 
 if [[ $NODE == "" ]]; then
   echo "ERROR: Node is null"
+  echo ""
+  usage
   exit 1
+fi
+
+if [[ $SLEEP == "" ]]; then
+  # Sleep 60 seconds by default
+  export SLEEP=60
 fi
 
 # Validate OpenStack credentials 
