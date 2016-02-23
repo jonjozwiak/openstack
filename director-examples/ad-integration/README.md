@@ -86,6 +86,7 @@ vi /home/stack/templates/custom/ad-post-deploy.yaml
   ldap_server is the name of your AD server (i.e. ldaps://<fqdn>:636)
      IMPORTANT: You must be able to resolve your LDAP host name (via DNS or /etc/hosts).  
 	LDAPS cannot use IP addresses due to SSL
+	(Alternatively, ldap://<fqdn>:389)
   ldap_user is the account you created for ldap access (i.e. CN=svc-openstack,CN=Users,DC=example,DC=com)
   ldap_password is the password you set for the account
   ldap_suffix: The suffix of your distinguished name (i.e. DC=example,DC=com)
@@ -105,6 +106,13 @@ vi /home/stack/templates/custom/ad-post-deploy.yaml
 ``` 
 -e /home/stack/templates/custom/ad-post-deploy.yaml
 ```
+NOTE: You cannot have multiple NodeExtraConfigPost definitions.  If you want to
+do multiple SoftwareConfigs in post deploy, you can create something like config
+-post-deploy.yaml that calls a single config yaml.  Then in that config yaml you
+ can have multiple SoftwareConfig and SoftwareDeployments resources.  Also, you
+can use 'depends_on: deploymentname' in the definition of a SoftwareConfig if yo
+u need one to complete before the other.  So in this example, copy ad-post-deploy.yaml to custom-post-deploy.yaml having the NodeExtraConfigPost pointing to custom-config.yaml.  Then in custom-config.yaml copy in the SoftwareConfig and SoftwareDeployment and parameters from ad-config.yaml.  Finally, add '-e /home/stack/templates/custom-post-deploy.yaml'... 
+
 
 ## Validate your Openstack AD Integration
 The AD config script will create a credentials file on your controllers: /root/overcloudrc_admin_v3.  We'll source that and use if for validation

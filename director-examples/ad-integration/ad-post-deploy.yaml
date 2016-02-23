@@ -2,13 +2,13 @@ resource_registry:
   OS::TripleO::NodeExtraConfigPost: /home/stack/templates/custom/ad-config.yaml
 parameter_defaults:
   ldap_domain: EXAMPLE
-  ldap_server: ldaps://ds1.example.com:636
+  ldap_server: ldaps://dc1.example.com:636
   ldap_user: CN=svc-openstack,CN=Users,DC=example,DC=com
   ldap_password: MyPassword
   ldap_suffix: DC=example,DC=com
   ldap_user_tree: CN=Users,DC=example,DC=com
-  ldap_enabled_group: CN=grp-openstack,CN=Users,DC=Users,DC=example,DC=com
+  ldap_enabled_group: CN=grp-openstack,CN=Users,DC=example,DC=com
   ldap_group_tree: CN=Groups,DC=example,DC=com
-  ldap_group_filter: CN=grp-openstack,CN=Users,DC=Users,DC=example,DC=com
-  ldap_cert_name: ds1.example.com.cer
-  ldap_cert_url: http://192.168.0.10/ds1.example.com.cer
+  ldap_group_filter: CN=grp-openstack,CN=Users,DC=example,DC=com
+  ldap_cert_name: dc1.example.com.cer
+  ldap_cert_url: http://192.168.0.10/dc1.example.com.cer
