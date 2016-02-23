@@ -100,7 +100,7 @@ vi /home/stack/templates/custom/ad-post-deploy.yaml
   ldap_cert_url: URL on the director host where overcloud can grab this file 
         (i.e. http://192.168.0.10/dc1.example.com.cer)
     NOTE: Use the provisioning IP for the director host
-    NOTE: leave ldap_cert_name and ldap_cert_url blank if not doing LDAPS
+    NOTE: Set ldap_cert_name and ldap_cert_url to '' if not doing LDAPS
 ```
 * Execute the overcloud deploy with the new templates added:
 ``` 

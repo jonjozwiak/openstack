@@ -7,9 +7,6 @@ description: >
 parameters:
  servers:
   type: json
- NodeConfigIdentifiers:
-  type: json
-  description: Value changes if the node configuration needs to be applied
  ldap_domain:
   type: string
   description: Name of the domain (i.e. EXAMPLE)
