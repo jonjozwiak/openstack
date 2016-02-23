@@ -1,0 +1,11 @@
+parameters: 
+  ssh_key_name: adminkey
+  flavor: m1.small
+  glance_image: CentOS-7-x86_64-GenericCloud-1601
+  external_network: 875b05b9-ae49-4726-a998-b0abcc563dbf
+  db_name: wordpress
+  db_username: admin
+  db_password: changeme
+  db_rootpassword: changeme
+  rhn_username: ''
+  rhn_password: ''

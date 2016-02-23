@@ -1,0 +1,263 @@
+heat_template_version: 2014-10-16
+
+description: >
+  Single WorkPress Instance.  WordPress is web software you can use to create
+  a beautiful website or blog. This template installs a single-instance
+  WordPress deployment using a local MySQL database to store the data.
+  heat stack-create -f wordpress_single_instance.yaml -e wordpress_single_instance_environment.yaml
+
+parameters:
+  ssh_key_name:
+    type: string
+    description: name of ssh key to be provisioned on our server
+
+  external_network:
+    type: string
+    description: uuid/name of a network to use for floating ip addresses
+    default: public
+
+  glance_image:
+    type: string
+    description: glance image used to boot the server
+
+  flavor:
+    type: string
+    default: m1.small
+    description: flavor to use when booting the server
+
+  dns_nameserver:
+    type: string
+    description: address of a dns nameserver reachable in your environment
+    default: 8.8.8.8
+
+  fixed_network_cidr:
+    type: string
+    description: network range for fixed ip network
+    default: 60.0.0.0/24
+
+  wait_condition_timeout:
+    type: number
+    description : >
+      timeout for the Wait Conditions
+    default: 6000
+
+  rhn_register_host:
+    type: string
+    description: >
+      whether or not to try registering with RHN
+    default: "false"
+    constraints:
+      - allowed_values: ["true", "false"]
+
+  rhn_username:
+    type: string
+    description: >
+      username to use for authenticating with RHN
+    default: ''
+
+  rhn_password:
+    type: string
+    description: >
+      password to use for authenticating with RHN
+    default: ''
+
+  db_name:
+    description: The WordPress database name
+    type: string
+    default: wordpress
+    constraints:
+      - length: { min: 1, max: 64 }
+        description: DB name must be between 1 and 64 characters
+      - allowed_pattern: "[a-zA-Z][a-zA-Z0-9]*"
+        description: Must begin with a letter and contain only alphanumeric characters
+
+  db_username:
+    description: The WordPress database admin account username
+    type: string
+    default: admin
+    hidden: true
+    constraints:
+      - length: { min: 1, max: 16 }
+        description: DB User Name must be between 1 and 16 characters
+      - allowed_pattern: "[a-zA-Z][a-zA-Z0-9]*"
+        description: Must begin with a letter and contain only alphanumeric characters
+
+  db_password:
+    description: The WordPress database admin account password
+    type: string
+    default: admin
+    hidden: true
+    constraints:
+      - length: { min: 1, max: 41 }
+        description: DB Password must be between 1 and 41 characters
+      - allowed_pattern: "[a-zA-Z0-9]*"
+        description: Must contain only alphanumeric characters
+
+  db_rootpassword:
+    description: Root password for MySQL
+    type: string
+    hidden: true
+    constraints:
+      - length: { min: 1, max: 41 }
+        description: DB Password must be between 1 and 41 characters
+      - allowed_pattern: "[a-zA-Z0-9]*"
+        description: Must contain only alphanumeric characters
+
+resources:
+
+  #########################
+  ### network resources ###
+  #########################
+
+  fixed_network:
+    type: OS::Neutron::Net
+
+  fixed_subnet:
+    type: OS::Neutron::Subnet
+    properties:
+      cidr: {get_param: fixed_network_cidr}
+      network: {get_resource: fixed_network}
+      dns_nameservers:
+        - {get_param: dns_nameserver}
+
+  extrouter:
+    type: OS::Neutron::Router
+    properties:
+      external_gateway_info:
+        network: {get_param: external_network}
+
+  extrouter_inside:
+    type: OS::Neutron::RouterInterface
+    properties:
+      router_id: {get_resource: extrouter}
+      subnet: {get_resource: fixed_subnet}
+
+  node_wait_handle:
+    type: OS::Heat::WaitConditionHandle
+
+  node_wait_condition:
+    type: OS::Heat::WaitCondition
+    depends_on: node
+    properties:
+      handle: {get_resource: node_wait_handle}
+      timeout: {get_param: wait_condition_timeout}
+
+
+  #######################
+  ### security groups ###
+  #######################
+
+  secgroup_base:
+    type: OS::Neutron::SecurityGroup
+    properties:
+      rules:
+        - protocol: icmp
+        - protocol: tcp
+          port_range_min: 22
+          port_range_max: 22
+
+  secgroup_http:
+    type: OS::Neutron::SecurityGroup
+    properties:
+      rules:
+        - protocol: tcp
+          port_range_min: 80
+          port_range_max: 80
+
+  ######################################################################
+  ### software configs.  these are components that are combined into ###
+  ### a multipart MIME user-data archive.                            ###
+  ######################################################################
+
+  rhn_register:
+    type: OS::Heat::SoftwareConfig
+    properties:
+      group: ungrouped
+      config:
+        str_replace:
+          template: {get_file: rhn-register.yaml}
+          params:
+            "$RHN_REGISTER_HOST": {get_param: rhn_register_host}
+            "$RHN_USERNAME": {get_param: rhn_username}
+            "$RHN_PASSWORD": {get_param: rhn_password}
+
+  wordpress_install:
+    type: OS::Heat::SoftwareConfig
+    properties:
+      group: ungrouped
+      config: 
+        str_replace:
+          template: {get_file: wordpress_install.sh}
+          params:
+            db_rootpassword: { get_param: db_rootpassword }
+            db_name: { get_param: db_name }
+            db_username: { get_param: db_username }
+            db_password: { get_param: db_password }
+
+  wc_notify:
+    type: OS::Heat::SoftwareConfig
+    properties:
+      group: ungrouped
+      config:
+        str_replace:
+          template: |
+            #!/bin/bash -v
+            wc_notify --data-binary '{"status": "SUCCESS"}'
+          params:
+            wc_notify: {get_attr: [node_wait_handle, curl_cli]}
+
+  node_init:
+    type: OS::Heat::MultipartMime
+    properties:
+      parts:
+        - config: {get_resource: rhn_register}
+        - config: {get_resource: wordpress_install}
+        - config: {get_resource: wc_notify}
+
+  #####################
+  ### Nova Instance ###
+  #####################
+
+  node:
+    type: OS::Nova::Server
+    depends_on:
+      - extrouter_inside
+    properties:
+      image: {get_param: glance_image}
+      flavor: {get_param: flavor}
+      key_name: {get_param: ssh_key_name}
+      #rhn_register_host: {get_param: rhn_register_host}
+      #rhn_username: {get_param: rhn_username}
+      #rhn_password: {get_param: rhn_password}
+      #db_rootpassword: { get_param: db_rootpassword }
+      #db_name: { get_param: db_name }
+      #db_username: { get_param: db_username }
+      #db_password: { get_param: db_password }
+      user_data_format: RAW
+      user_data: {get_resource: node_init}
+      networks:
+        - port: {get_resource: node_eth0}
+
+  node_eth0:
+    type: OS::Neutron::Port
+    properties:
+      network: {get_resource: fixed_network}
+      security_groups:
+        - {get_resource: secgroup_base}
+        - {get_resource: secgroup_http}
+      fixed_ips:
+        - subnet: {get_resource: fixed_subnet}
+
+  node_floating:
+    type: OS::Neutron::FloatingIP
+    properties:
+      floating_network: {get_param: external_network}
+      port_id: {get_resource: node_eth0}
+
+outputs:
+
+  website_ip:
+    value: {get_attr: [node_floating, floating_ip_address]}
+    description: >
+      Wordpress Website
+
