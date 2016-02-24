@@ -7,4 +7,8 @@ IP=<ip>
 export OS_SERVICE_ENDPOINT=http://${IP}:35357/v2.0
 
 keystone user-password-update --pass <NewPassword> admin
+unset OS_SERVICE_TOKEN
+unset OS_SERVICE_ENDPOINT
 ```
+
+Once the password is updated, update your overcloudrc (or keystonerc_admin) and source the new file

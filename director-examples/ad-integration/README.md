@@ -124,7 +124,9 @@ openstack user list --domain $LDAPDOMAIN
 openstack role list 
 openstack role add --project ldaptestproject --user <user id> < _member_ role id>
 #openstack role add --project <project name> --user <user id> < admin role id>
-openstack role assignment list --role admin --user <user ID> --domain $LDAPDOMAIN
+openstack role assignment list --project ldaptestproject
+openstack role assignment list --user <user id>
+openstack role assignment list --role _member_
 # You should now be able to log into the dashboard as this user with their AD password
 
 # Allow AD group (and all it's users) to access projects
