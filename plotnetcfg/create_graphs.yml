@@ -1,0 +1,51 @@
+# This script collects plotnetcfg output, stores it, and transforms it for 
+# use with the web site 
+- hosts: 
+  - controller 
+  - compute
+  become: true
+  tags: collect
+  tasks:
+  - name: Generate plotnetcfg output 
+    shell: plotnetcfg > /tmp/plotnetcfg.txt
+
+  - name: Capture date/time of collection
+    shell: date +%Y%m%d_%H%M
+    register: collect_date
+    changed_when: false
+
+  - name: Fetch plotnetcfg output from remote
+    # Add date to this? 
+    fetch: src=/tmp/plotnetcfg.txt dest=/var/www/html/netcfg/graphs/tmp/{{collect_date.stdout}}.{{ ansible_hostname }}.txt flat=yes
+
+- hosts: director
+  become: true
+  tags: create
+  tasks:
+  - name: Current graphs files
+    shell: find /var/www/html/netcfg/graphs/*.txt -printf "%f\n" 
+    register: graphs_files
+    ignore_errors: true
+    changed_when: false
+  
+  - name: Convert plotnetcfg output if graph doesn't exist
+    command: dot /var/www/html/netcfg/graphs/tmp/{{ item | basename}} -Txdot -o /var/www/html/netcfg/graphs/{{ item | basename}}
+    when: "'{{ item | basename }}' not in graphs_files.stdout"
+    with_fileglob: /var/www/html/netcfg/graphs/tmp/*.txt
+
+  - name: Remove plotnetcfg temp files older than 30 days
+    command: find /var/www/html/netcfg/graphs/tmp/*.txt -mtime +30 -exec rm {} \;
+    ignore_errors: true
+
+  - name: Remove graph files older than 30 days
+    command: find /var/www/html/netcfg/graphs/*.gv.txt -mtime +30 -exec rm {} \;
+    ignore_errors: true
+
+  - name: Final graphs files
+    shell: find /var/www/html/netcfg/graphs/*.txt -printf "%f\n" 
+    register: final_graphs_files
+    ignore_errors: true
+
+  - name: Write graphlist.js 
+    template: src=templates/graphlist.js.j2 dest=/var/www/html/netcfg/graphs/graphlist.js owner=root group=root mode=0644
+

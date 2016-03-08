@@ -1,0 +1,38 @@
+- hosts: all
+  become: true
+  tasks:
+  - name: Install packages (yum)
+    yum: name={{ item }} state=present
+    #hosts: all
+    when: ansible_pkg_mgr == "yum"
+    with_items:
+      - plotnetcfg
+      - graphviz
+
+- hosts: director
+  become: true
+  tasks:
+  - name: Disable sudo requiretty
+    lineinfile: dest=/etc/sudoers regexp='^Defaults    requiretty' line='#Defaults    requiretty' backrefs=yes validate='visudo -cf %s'
+
+  - name: Create Graph web directory
+    file: path=/var/www/html/netcfg state=directory owner=root group=root mode=0755
+
+  - name: Copy Graph website to /var/www/html/netcfg 
+    copy:
+      src=files/netcfg/
+      dest=/var/www/html/netcfg/
+      owner=root
+      group=root
+
+  - name: Create Graph web tmp dir 
+    file: path=/var/www/html/netcfg/graphs/tmp state=directory owner=root group=root mode=0777
+
+- hosts: director
+  become: false
+  tasks:
+  - name: Create cron entry for the stack user to run 
+    cron: name="collect graphs" minute="0" hour="6" job="/usr/bin/ansible-playbook /home/stack/plotnetcfg/create_graphs.yml"
+
+
+

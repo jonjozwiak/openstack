@@ -7,3 +7,6 @@ By default, VMware will not allow MAC spoofing.  To enable, go into the vSwitch 
 Reference:
 http://www.dasblinkenlichten.com/vcp-vsphere-networking-standard-vswitches/
 
+Also for a VMware based OpenStack I *think* these are needed but not 100% certain
+* Enable promiscuous mode
+* Enable forged retransmits

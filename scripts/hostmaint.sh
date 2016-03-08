@@ -16,6 +16,8 @@ usage ()
     echo "                      enable - enable node"
     echo " -k <keystonerc file> Path to the keystone credentials file"
     echo " 			OpenStack credentials are needed"
+    echo " -s <sleep seconds>   Time to sleep between migration and check"
+    echo " -t <live|nonlive>    live migration by default.  nonlive if specified"
 }
 
 while getopts 'h:n:a:k:' OPTION
@@ -44,6 +46,20 @@ do
               source $KEYSTONE
             fi
             ;;
+        s)
+            export SLEEP=$OPTARG
+            ;;
+        t)
+            export TYPE=$OPTARG
+            if [[ $TYPE == "" ]]; then
+               TYPE=live
+            fi
+            if [[ ! $TYPE =~ ^(live|nonlive)$ ]]; then
+              usage
+              exit 3
+            fi
+            ;;
+
         *)
             usage
             exit 3
@@ -94,13 +110,22 @@ disable_hypervisor ()
     # Check instances on Host 
     echo "$NODE is currently running $INSTANCE_COUNT instances"
     echo ""
-    echo "Live migration will be attempted for the following instances:"
+    echo "Migration will be attempted for the following instances:"
     echo ""
     nova hypervisor-servers $NODE
 
     # Live migrate instances off the host
-    nova host-evacuate-list $NODE
-    #nova live-migration <instance> <host>  # Another option here
+    if [[ $TYPE == "nonlive" ]] ; then
+      echo "Beginning non-live migration.  Instances will be restarted on an alternate hypervisor"
+      nova host-evacuate $NODE
+      #nova live-migration <instance> <host>  # Another option here
+    else
+      echo "Beginning live migration"
+      nova host-evacuate-live $NODE
+    fi
+
+    echo "Sleeping for $SLEEP seconds while instances migrate" 
+    sleep $SLEEP
 
     # Validate no instances remain 
     INSTANCE_COUNT=0
@@ -137,7 +162,18 @@ enable_hypervisor ()
 # Main 
 if [[ $NODE == "" ]]; then
   echo "ERROR: Node is null"
+  echo ""
+  usage
   exit 1
+fi
+
+if [[ $SLEEP == "" ]]; then
+  # Sleep 60 seconds by default
+  export SLEEP=60
+fi
+
+if [[ $TYPE == "" ]]; then
+  TYPE=live
 fi
 
 # Validate OpenStack credentials 

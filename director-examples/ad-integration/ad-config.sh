@@ -271,12 +271,15 @@ group_allow_create=False
 group_allow_update=False
 group_allow_delete=False
 use_tls = False
-### If using LDAPS you need to set this!
-tls_cacertfile=/etc/ssl/certs/${CRTSHORTNAME}
 
 [identity]
 driver = keystone.identity.backends.ldap.Identity
 EOF
+
+  # Set Cert file if using LDAPS
+  if [[ $(echo $varldapserver | grep ldaps | wc -l) -ne 0 ]]; then
+     openstack-config --set /etc/keystone/domains/keystone.${varldapdomain}.conf ldap tls_cacertfile /etc/ssl/certs/${CRTSHORTNAME}
+  fi
 
   # Ensure correct ownership
   chown -R keystone:keystone /etc/keystone/domains
@@ -398,7 +401,7 @@ function setup_compute {
   fi
 
   # Ceilometer
-  if [[ $(openstack-config --get /etc/ceilometer/ceilometer.conf keystone_authtoken auth_uri | grep "/v3" | wc -l) eq 0 ]]; then
+  if [[ $(openstack-config --get /etc/ceilometer/ceilometer.conf keystone_authtoken auth_uri | grep "/v3" | wc -l) -eq 0 ]]; then
     echo "INFO: Changing ceilometer to keystone v3 and restarting ceilometer"
     CEILOMETER_V2_AUTH=$(hiera ceilometer::agent::auth::auth_url | tr -d '\n')
     CEILOMETER_V3_AUTH=$(echo $CEILOMETER_V2_AUTH | sed 's/v2.0/v3/')
@@ -418,7 +421,7 @@ if [[ $HOSTNAME == *"controller"* ]]; then
 elif [[ $HOSTNAME == *"compute"* ]]; then
   echo "This is a compute node... continuing"
   setup_compute
-else:
+else
   echo "Not running on a controller or compute node, so I'm not doing anything"
 fi
 

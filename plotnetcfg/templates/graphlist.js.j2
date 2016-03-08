@@ -1,0 +1,9 @@
+/*
+ * This file is part of Canviz. See http://www.canviz.org/
+ */
+
+var graphs = [
+{% for item in final_graphs_files %}
+'{{ item }}',
+{% endfor %}
+];

@@ -1,0 +1,8 @@
+/*
+ * This file is part of Canviz. See http://www.canviz.org/
+ */
+
+var graphs = [
+'overcloud-controller-0.gv.txt',
+'overcloud-compute-0.gv.txt'
+];

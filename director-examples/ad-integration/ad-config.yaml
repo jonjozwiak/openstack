@@ -5,84 +5,81 @@ description: >
   in https://access.redhat.com/documentation/en/red-hat-enterprise-linux-openstack-platform/7/integrate-with-identity-service/chapter-1-active-directory-integration
 
 parameters:
-  servers:
-    type: json
-  NodeConfigIdentifiers:
-    type: json
-    description: Value changes if the node configuration needs to be applied
-  ldap_domain:
-    type: string
-    description: Name of the domain (i.e. EXAMPLE)
-  ldap_server:
-    type: string
-    description: Comma separated list of LDAP servers ("ldaps://<fqdn>:636" or "ldap://<fqdn>") 
-  ldap_user:
-    type: string
-    description: Service account in ldap to bind to ("CN=svc-openstack,CN=Users,DC=example,DC=com")
-  ldap_password:
-    type: string
-    hidden: true
-    description: Password for service account
-  ldap_suffix:
-    type: string
-    description: Suffix for LDAP (DC=example,DC=com)
-  ldap_user_tree:
-    type: string
-    description: Tree where users exist in LDAP ("CN=Users,DC=example,DC=com")
-  ldap_enabled_group:
-    type: string
-    description: Group in LDAP which enables access to OpenStack ("CN=grp-openstack,CN=Users,DC=Users,DC=example,DC=com")
-  ldap_group_tree:
-    type: string
-    description: Tree where groups exist in LDAP ("CN=Groups,DC=example,DC=com")
-  ldap_group_filter:
-    type: string
-    description: Only groups in this DN will be seen in OpenStack ("CN=grp-openstack,CN=Users,DC=Users,DC=example,DC=com")
-  ldap_cert_name:
-    type: string
-    description: File name of the DER-encoded X509 cert from AD (ds1.example.com.cer)
-  ldap_cert_url: 
-    type: string
-    description: URL where this file will be accessible for the overcloud - typically the director host's private IP (http://192.168.0.10/ds1.example.com.cer)
+ servers:
+  type: json
+ ldap_domain:
+  type: string
+  description: Name of the domain (i.e. EXAMPLE)
+ ldap_server:
+  type: string
+  description: Comma separated list of LDAP servers ("ldaps://<fqdn>:636" or "ldap://<fqdn>") 
+ ldap_user:
+  type: string
+  description: Service account in ldap to bind to ("CN=svc-openstack,CN=Users,DC=example,DC=com")
+ ldap_password:
+  type: string
+  hidden: true
+  description: Password for service account
+ ldap_suffix:
+  type: string
+  description: Suffix for LDAP (DC=example,DC=com)
+ ldap_user_tree:
+  type: string
+  description: Tree where users exist in LDAP ("CN=Users,DC=example,DC=com")
+ ldap_enabled_group:
+  type: string
+  description: Group in LDAP which enables access to OpenStack ("CN=grp-openstack,CN=Users,DC=Users,DC=example,DC=com")
+ ldap_group_tree:
+  type: string
+  description: Tree where groups exist in LDAP ("CN=Groups,DC=example,DC=com")
+ ldap_group_filter:
+  type: string
+  description: Only groups in this DN will be seen in OpenStack ("CN=grp-openstack,CN=Users,DC=Users,DC=example,DC=com")
+ ldap_cert_name:
+  type: string
+  description: File name of the DER-encoded X509 cert from AD (ds1.example.com.cer)
+ ldap_cert_url: 
+  type: string
+  description: URL where this file will be accessible for the overcloud - typically the director host's private IP (http://192.168.0.10/ds1.example.com.cer)
 
 resources:
-  LDAPConfig:
-    type: OS::Heat::SoftwareConfig
-    properties:
-      group: script
-      config:
-        str_replace:
-          template: {get_file: /home/stack/templates/custom/ad-config.sh
-          params:
-            LDAP_DOMAIN: {get_param: ldap_domain}
-            LDAP_SERVER: {get_param: ldap_server}
-            LDAP_USER: {get_param: ldap_user}
-            LDAP_PASSWORD: {get_param: ldap_password}
-            SUFFIX: {get_param: ldap_suffix}
-            USER_TREE: {get_param: ldap_user_tree}
-            ENABLED_GROUP: {get_param: ldap_enabled_group}
-            GROUP_TREE: {get_param: ldap_group_tree}
-            GROUP_FILTER: {get_param: ldap_group_filter}
-            LDAPSCERTNAME: {get_param: ldap_cert_name}
-            LDAPSCERTURL: {get_param: ldap_cert_url}
+ LDAPConfig:
+  type: OS::Heat::SoftwareConfig
+  properties:
+   group: script
+   config:
+    str_replace:
+     template: {get_file: /home/stack/templates/custom/ad-config.sh}
+     params:
+      LDAP_DOMAIN: {get_param: ldap_domain}
+      LDAP_SERVER: {get_param: ldap_server}
+      LDAP_USER: {get_param: ldap_user}
+      LDAP_PASSWORD: {get_param: ldap_password}
+      SUFFIX: {get_param: ldap_suffix}
+      USER_TREE: {get_param: ldap_user_tree}
+      ENABLED_GROUP: {get_param: ldap_enabled_group}
+      GROUP_TREE: {get_param: ldap_group_tree}
+      GROUP_FILTER: {get_param: ldap_group_filter}
+      LDAPSCERTNAME: {get_param: ldap_cert_name}
+      LDAPSCERTURL: {get_param: ldap_cert_url}
 
-  LDAPDeploymentsController:
-    type: OS::Heat::SoftwareDeployments
-    properties:
-      servers:  {get_param: servers}
-      config: {get_resource: LDAPConfig}
-      actions: ['CREATE', 'UPDATE'] # Only do this on CREATE & UPDATE
+ LDAPDeploymentsController:
+  type: OS::Heat::SoftwareDeployments
+  properties:
+   servers:  {get_param: servers}
+   config: {get_resource: LDAPConfig}
+   actions: ['CREATE', 'UPDATE'] # Only do this on CREATE & UPDATE
 
 outputs:
-    ldap_result:
-      value:
-        get_attr: [LDAPDeploymentsController, result]
-    ldap_stdout:
-      value:
-        get_attr: [LDAPDeploymentsController, deploy_stdout]
-    ldap_stderr:
-      value:
-        get_attr: [LDAPDeploymentsController, deploy_stderr]
-    ldap_status_code:
-      value:
-        get_attr: [LDAPDeploymentsController, deploy_status_code]
+ ldap_result:
+  value:
+   get_attr: [LDAPDeploymentsController, result]
+ ldap_stdout:
+  value:
+   get_attr: [LDAPDeploymentsController, deploy_stdout]
+ ldap_stderr:
+  value:
+   get_attr: [LDAPDeploymentsController, deploy_stderr]
+ ldap_status_code:
+  value:
+   get_attr: [LDAPDeploymentsController, deploy_status_code]

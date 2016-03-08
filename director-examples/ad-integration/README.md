@@ -86,6 +86,7 @@ vi /home/stack/templates/custom/ad-post-deploy.yaml
   ldap_server is the name of your AD server (i.e. ldaps://<fqdn>:636)
      IMPORTANT: You must be able to resolve your LDAP host name (via DNS or /etc/hosts).  
 	LDAPS cannot use IP addresses due to SSL
+	(Alternatively, ldap://<fqdn>:389)
   ldap_user is the account you created for ldap access (i.e. CN=svc-openstack,CN=Users,DC=example,DC=com)
   ldap_password is the password you set for the account
   ldap_suffix: The suffix of your distinguished name (i.e. DC=example,DC=com)
@@ -99,12 +100,19 @@ vi /home/stack/templates/custom/ad-post-deploy.yaml
   ldap_cert_url: URL on the director host where overcloud can grab this file 
         (i.e. http://192.168.0.10/dc1.example.com.cer)
     NOTE: Use the provisioning IP for the director host
-    NOTE: leave ldap_cert_name and ldap_cert_url blank if not doing LDAPS
+    NOTE: Set ldap_cert_name and ldap_cert_url to '' if not doing LDAPS
 ```
 * Execute the overcloud deploy with the new templates added:
 ``` 
 -e /home/stack/templates/custom/ad-post-deploy.yaml
 ```
+NOTE: You cannot have multiple NodeExtraConfigPost definitions.  If you want to
+do multiple SoftwareConfigs in post deploy, you can create something like config
+-post-deploy.yaml that calls a single config yaml.  Then in that config yaml you
+ can have multiple SoftwareConfig and SoftwareDeployments resources.  Also, you
+can use 'depends_on: deploymentname' in the definition of a SoftwareConfig if yo
+u need one to complete before the other.  So in this example, copy ad-post-deploy.yaml to custom-post-deploy.yaml having the NodeExtraConfigPost pointing to custom-config.yaml.  Then in custom-config.yaml copy in the SoftwareConfig and SoftwareDeployment and parameters from ad-config.yaml.  Finally, add '-e /home/stack/templates/custom-post-deploy.yaml'... 
+
 
 ## Validate your Openstack AD Integration
 The AD config script will create a credentials file on your controllers: /root/overcloudrc_admin_v3.  We'll source that and use if for validation
@@ -116,7 +124,9 @@ openstack user list --domain $LDAPDOMAIN
 openstack role list 
 openstack role add --project ldaptestproject --user <user id> < _member_ role id>
 #openstack role add --project <project name> --user <user id> < admin role id>
-openstack role assignment list --role admin --user <user ID> --domain $LDAPDOMAIN
+openstack role assignment list --project ldaptestproject
+openstack role assignment list --user <user id>
+openstack role assignment list --role _member_
 # You should now be able to log into the dashboard as this user with their AD password
 
 # Allow AD group (and all it's users) to access projects
