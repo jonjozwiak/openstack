@@ -1,6 +1,6 @@
 # How to fix 'Authentication failed for ro_snmp_user' 
 
-OSP7 Director gives a lot of messages indicating that snmp auth fails.  This is a bug as follows:
+OSP7 Director gives a lot of messages indicating that snmp auth fails in /var/log/ceilometer/central.log on the director host.  This is a bug as follows:
 
 https://bugzilla.redhat.com/show_bug.cgi?id=1233251
 
