@@ -1,0 +1,28 @@
+heat_template_version: 2014-10-16
+
+resources:
+  userdata:
+    type: OS::Heat::MultipartMime
+    properties:
+      parts:
+      - config: {get_resource: wipe_disk}
+
+  wipe_disk:
+    type: OS::Heat::SoftwareConfig
+    properties:
+      config: |
+        #!/bin/bash
+        #case "jjozwiak.csb" in
+        #  strg*)
+            for i in {b,c,d,e,f,g,i,j,k,l,m,n}; do
+              if [ -b /dev/sd ]; then
+                echo "(II) Wiping disk /dev/sd..."
+                sgdisk -Z /dev/sd
+              fi
+            done
+        #  ;;
+        #esac
+
+outputs:
+  OS::stack_id:
+    value: {get_resource: userdata}
