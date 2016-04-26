@@ -9,4 +9,5 @@ https://access.redhat.com/solutions/2060423
 Don't forget to shutdown director VM, edit -> show advanced options -> custom properties -> add macspoof=true 
 
 RHEV/VMware Overcloud Nodes: https://access.redhat.com/solutions/1598553
-  -> Talks about fencing if controllers are on RHEV
+  -> Talks about fencing if controllers are on RHEV 
+   as well as https://access.redhat.com/solutions/2060423
