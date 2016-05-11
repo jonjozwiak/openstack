@@ -5,10 +5,9 @@ Sahara is fully supported with RHEL OSP 8, but is not currently integrated with 
 The following are the links to the necessary template changes:
 
 * Main Entry: https://review.openstack.org/#/c/220863/
-* Abandoned Libery Merge: https://review.openstack.org/#/c/272614/
+* Abandoned Liberty Merge: https://review.openstack.org/#/c/272614/
 * Load balancer puppet module change: https://review.openstack.org/#/c/220859/4/manifests/loadbalancer.pp
 
-I've followed the abandoned merge for my work.
 
 ## Modifying Templates for Sahara
 
