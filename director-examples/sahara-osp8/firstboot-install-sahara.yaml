@@ -1,0 +1,137 @@
+heat_template_version: 2015-04-30
+
+description: >
+  Add local yum repo and install Sahara packages on first boot
+
+resources:
+  userdata:
+    type: OS::Heat::MultipartMime
+    properties:
+      parts:
+      - config: {get_resource: sahara_config}
+
+  sahara_config:
+    type: OS::Heat::SoftwareConfig
+    properties:
+      config: |
+        #!/bin/bash
+        cat << EOF >> /etc/yum.repos.d/rhelosp8.repo
+        [rhel-7-server-rpms]
+        name=Red Hat Enterprise Linux $releasever - $basearch
+        baseurl=http://192.168.122.1/repos/rhel-7-server-rpms/
+        enabled=1
+        gpgcheck=1
+        gpgkey=file:///etc/pki/rpm-gpg/RPM-GPG-KEY-redhat-release
+        
+        [rhel-7-server-optional-rpms]
+        name=Red Hat Enterprise Linux $releasever - $basearch Optional
+        baseurl=http://192.168.122.1/repos/rhel-7-server-optional-rpms/
+        enabled=1
+        gpgcheck=1
+        gpgkey=file:///etc/pki/rpm-gpg/RPM-GPG-KEY-redhat-release
+         
+        [rhel-7-server-extras-rpms]
+        name=Red Hat Enterprise Linux $releasever - $basearch Extras
+        baseurl=http://192.168.122.1/repos/rhel-7-server-extras-rpms/
+        enabled=1
+        gpgcheck=1
+        gpgkey=file:///etc/pki/rpm-gpg/RPM-GPG-KEY-redhat-release
+        
+        [rhel-ha-for-rhel-7-server-rpms]
+        name=Red Hat Enterprise Linux $releasever - $basearch HA
+        baseurl=http://192.168.122.1/repos/rhel-ha-for-rhel-7-server-rpms/
+        enabled=1
+        gpgcheck=1
+        gpgkey=file:///etc/pki/rpm-gpg/RPM-GPG-KEY-redhat-release
+        
+        
+        [rhel-7-server-openstack-8-rpms]
+        name=rhel-7-server-openstack-8-rpms
+        baseurl=http://192.168.122.1/repos/rhel-7-server-openstack-8-rpms/
+        gpgcheck=0
+        enabled=1
+        
+        [rhel-7-server-openstack-8-director-rpms]
+        name=rhel-7-server-openstack-8-director-rpms
+        baseurl=http://192.168.122.1/repos/rhel-7-server-openstack-8-director-rpms/
+        gpgcheck=0
+        enabled=1
+        
+        [rhel-7-server-rhceph-1.3-calamari-rpms]
+        name=Ceph 1.3 Calamari for RHEL 7
+        baseurl=http://192.168.122.1/repos/rhel-7-server-rhceph-1.3-calamari-rpms/
+        gpgcheck=0
+        enabled=1
+        
+        [rhel-7-server-rhceph-1.3-installer-rpms]
+        name=Ceph 1.3 Installer for RHEL 7
+        baseurl=http://192.168.122.1/repos/rhel-7-server-rhceph-1.3-installer-rpms/
+        gpgcheck=0
+        enabled=1
+        
+        [rhel-7-server-rhceph-1.3-mon-rpms]
+        name=Ceph 1.3 MON for RHEL 7
+        baseurl=http://192.168.122.1/repos/rhel-7-server-rhceph-1.3-mon-rpms/
+        gpgcheck=0
+        enabled=1
+        
+        [rhel-7-server-rhceph-1.3-osd-rpms]
+        name=Ceph 1.3 OSD for RHEL 7
+        baseurl=http://192.168.122.1/repos/rhel-7-server-rhceph-1.3-osd-rpms/
+        gpgcheck=0
+        enabled=1
+        
+        [rhel-7-server-rhceph-1.3-tools-rpms]
+        name=Ceph 1.3 Tools for RHEL 7
+        baseurl=http://192.168.122.1/repos/rhel-7-server-rhceph-1.3-tools-rpms/
+        gpgcheck=0
+        enabled=1
+         
+        EOF
+        yum -y install openstack-sahara
+
+        # Patch the load balancer puppet manifest to add Sahara
+        sed -i -e '/  $swift_certificate         = undef,/a \ \ $sahara_certificate        = undef,' /etc/puppet/modules/tripleo/manifests/loadbalancer.pp
+        sed -i -e '/  $swift_proxy_server        = false,/a \ \ $sahara                    = false,' /etc/puppet/modules/tripleo/manifests/loadbalancer.pp
+
+        sed -i -e '/    manila_api_ssl_port => 13786,/a \ \ \ \ sahara_api_port => 8386,' /etc/puppet/modules/tripleo/manifests/loadbalancer.pp
+        sed -i -e '/    sahara_api_port => 8386,/a \ \ \ \ sahara_api_ssl_port => 13386,' /etc/puppet/modules/tripleo/manifests/loadbalancer.pp
+
+        sed -i -e '/  if $manila_certificate {/i \ \ if $sahara_certificate { \
+            $sahara_bind_certificate = $sahara_certificate \
+          } else { \
+            $sahara_bind_certificate = $service_certificate \
+          }' /etc/puppet/modules/tripleo/manifests/loadbalancer.pp
+
+          sed -i -e '/  $nova_api_vip = hiera/i \ \ $sahara_api_vip = hiera(\x27sahara_api_vip\x27, $controller_virtual_ip) \
+          if $sahara_bind_certificate { \
+            $sahara_bind_opts = { \
+              "${sahara_api_vip}:${ports[sahara_api_port]}" => $haproxy_listen_bind_param, \
+              "${public_virtual_ip}:${ports[sahara_api_ssl_port]}" => union($haproxy_listen_bind_param, [\x27ssl\x27, \x27crt\x27, $sahara_bind_certificate]), \
+            } \
+          } else { \
+            $sahara_bind_opts = { \
+              "${sahara_api_vip}:${ports[sahara_api_port]}" => [], \
+              "${public_virtual_ip}:${ports[sahara_api_port]}" => [], \
+            } \
+          } \
+          ' /etc/puppet/modules/tripleo/manifests/loadbalancer.pp
+
+          sed -i -e '/  if $glance_api {/i \ \ if $sahara { \
+            haproxy::listen { \x27sahara\x27: \
+              bind             => $sahara_bind_opts, \
+              collect_exported => false, \
+            } \
+            haproxy::balancermember { \x27sahara\x27: \
+              listening_service => \x27sahara\x27, \
+              ports             => \x278386\x27, \
+              ipaddresses       => hiera(\x27sahara_api_node_ips\x27, $controller_hosts_real), \
+              server_names      => $controller_hosts_names_real, \
+              options           => [\x27check\x27, \x27inter 2000\x27, \x27rise 2\x27, \x27fall 5\x27], \
+            } \
+          } \
+          ' /etc/puppet/modules/tripleo/manifests/loadbalancer.pp
+
+outputs:
+  OS::stack_id:
+    value: {get_resource: userdata}
