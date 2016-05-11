@@ -118,5 +118,11 @@ cp ~/openstack/director-examples/sahara-osp8/firstboot* /home/stack/templates/
 
 Here's an example of deploying using network isolation and Ceph backend.  Obviously your install command may vary.  There is nothing specific to call out for Sahara here as it's all built into the core of the templates.
 ```
-openstack overcloud deploy --templates ~/templates/ --ntp-server 0.fedora.pool.ntp.org --libvirt-type kvm --control-flavor control --compute-flavor compute --ceph-storage-flavor ceph-storage --control-scale 3 --compute-scale 2 --ceph-storage-scale 3 --neutron-tunnel-types vxlan --neutron-network-type vxlan -e ~/templates/environments/storage-environment.yaml -e ~/templates/environments/network-isolation.yaml -e ~/templates/firstboot.yaml
+openstack overcloud deploy --templates ~/templates/ --ntp-server 0.fedora.pool.ntp.org \
+ --libvirt-type kvm --control-flavor control --compute-flavor compute \
+ --ceph-storage-flavor ceph-storage --control-scale 3 --compute-scale 2 \
+ --ceph-storage-scale 3 --neutron-tunnel-types vxlan --neutron-network-type vxlan \
+ -e ~/templates/environments/storage-environment.yaml \
+ -e ~/templates/environments/network-isolation.yaml \
+ -e ~/templates/firstboot.yaml
 ```
