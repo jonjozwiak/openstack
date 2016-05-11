@@ -110,6 +110,9 @@ One other issue is that the load balancer puppet manifest on the overcloud image
 I've included a script called patch-loadbalancer-manifest.sh which contains the individual sed statements
 
 ```
+cp ~/openstack/director-examples/sahara-osp8/firstboot* /home/stack/templates/
+```
+
 
 ## Deploy OpenStack
 
