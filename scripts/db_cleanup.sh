@@ -18,6 +18,7 @@
 #1 */12 * * * nova-manage db archive_deleted_rows --max_rows 100 >>/dev/null 2>&1
 ### NOTE This seemed to do nothing in Kilo and Liberty
 ### http://lists.openstack.org/pipermail/openstack-dev/2015-November/079701.html
+### Should be fixed in Newton: https://bugzilla.redhat.com/show_bug.cgi?id=960644
 ### /var/spool/cron/ceilometer
 #PATH=/bin:/usr/bin:/usr/sbin SHELL=/bin/sh
 #1 0 * * * sleep $(($(od -A n -t d -N 3 /dev/urandom) % 86400)) && ceilometer-expirer
@@ -25,6 +26,9 @@
 #PATH=/bin:/usr/bin:/usr/sbin SHELL=/bin/sh
 #1 0 * * * heat-manage purge_deleted -g days 1 >>/dev/null 2>&1
 ### NOTE This didn't clean up the service table on Kilo
+### Glance has no build in DB purge. 
+### Spec upstream at https://blueprints.launchpad.net/glance/+spec/database-purge
+### Appears to have merged in December 2015: https://review.openstack.org/#/c/216782/
 #######################################################################################
 
 # Note, to describe all tables in a db: 
